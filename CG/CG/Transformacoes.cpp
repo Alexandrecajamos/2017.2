@@ -346,36 +346,6 @@ int main(){
 	imp(N,N,C);
 
 	
-	/*
-	float p[4] = {2,2,2,1};
-	float **P = VetorColuna(4,p);
-	
-	//Translação 1;
-	float VT1[3] = {0,-10,0};
-	float** T1 = Translacao(N,VT1);
-	imp(N+1,N+1,T1);
-	//Espelho
-	float A[3] = {6,0,-4};
-	float B[3] = {0,10,-4};
-	float* n = Normal(N,A,B);
-	n[N]=1;
-	float **VN = VetorColuna(4,n);
-	float** E = EspelhoArb(N,VN);
-	imp(N+1,N+1,E);
-	//Translação 2
-	float VT2[3] = {0,10,0};
-	float** T2 = Translacao(N,VT2);
-	imp(N+1,N+1,T2);
-
-
-	float** trans = mult(N+1,N+1,N+1,T1,E);
-	trans = mult(N+1,N+1,N+1,trans,T2);
-	imp(4,1,P);
-	imp(N+1,N+1,trans);
-	P = mult(4,4,1,trans,P);
-	imp(4,1,P);
-	*/
-
 	system("pause");
     return 0;
 }
