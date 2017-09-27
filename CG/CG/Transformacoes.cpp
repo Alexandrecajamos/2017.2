@@ -336,15 +336,59 @@ float** RQ(float A, float* V){
 	return rot;
 }
 
+struct Ponto{
+	float Coord[4];
+};
+struct Aresta{
+	Ponto *P1;
+	Ponto *P2;
+};
+struct Obj {
+	Ponto* Pontos;
+	int QtdPontos;
+	Aresta* A;
+};
+
+Ponto* VetorPontos(int N){
+	Ponto* P = (Ponto *)malloc(sizeof(Ponto)*N);
+	for(int i =0; i<N;i++){
+		preencheVet(4,P[i].Coord);
+	}
+	return P;
+}
+Obj PreencheObj(int QtdP){
+	Obj obj;
+	Ponto* P = VetorPontos(QtdP);
+	obj.Pontos=P;
+	obj.QtdPontos = QtdP;
+	return obj;
+}
+void Transforma(Obj O, float** M, int N){
+	for(int i=0;i<=O.QtdPontos;i++){
+		float** V = VetorColuna(N, O.Pontos[i].Coord);
+
+		V = mult(N,N,1,M,V);
+
+		for(int j=0;j<N;j++)
+			O.Pontos[i].Coord[j]=V[j][0];
+	}
+}
+void ImpObj(Obj O){
+	printf("\n Imprimindo %d pontos do objeto",O.QtdPontos);
+	for(int i=0;i<O.QtdPontos;i++){
+		printf("\n Ponto %d: ", i);
+		for(int j=0;j<4;j++){
+			printf("|%f|",O.Pontos[i].Coord[j]);
+		}
+	}printf("\n");
+}
+
 int main(){
-
-	int N = 4;
-	float* p = (float *)malloc(sizeof(float)*N);
-	preencheVet(N,p);
-	float** C = Cisalhamento(30,1,0);
-	
-	imp(N,N,C);
-
+	Obj Cubo = PreencheObj(4);
+	float e[4] = {1,1,2,1};
+	float** E = Escala(4,e);
+	Transforma(Cubo,E,4);
+	ImpObj(Cubo);
 	
 	system("pause");
     return 0;
