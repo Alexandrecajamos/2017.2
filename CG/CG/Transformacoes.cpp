@@ -363,15 +363,33 @@ Obj PreencheObj(int QtdP){
 	obj.QtdPontos = QtdP;
 	return obj;
 }
-void Transforma(Obj O, float** M, int N){
+Ponto PreencheP(float* V){
+	Ponto P;
+	for(int i=0; i< 4;i++)
+		P.Coord[i]= V[i];	
+	return P;
+}
+Obj CopiaObj(Obj A){
+	Obj O;
+	O.Pontos=(Ponto *)malloc(sizeof(Ponto)*A.QtdPontos);
+	for(int i=0; i< A.QtdPontos;i++)
+		O.Pontos[i] = PreencheP(A.Pontos[i].Coord);
+
+	O.QtdPontos=A.QtdPontos;
+	return O;
+}
+Obj Transforma(Obj O, float** M, int N){
+	Obj R;
+	R = CopiaObj(O);
 	for(int i=0;i<=O.QtdPontos;i++){
-		float** V = VetorColuna(N, O.Pontos[i].Coord);
+		float** V = VetorColuna(N, R.Pontos[i].Coord);
 
 		V = mult(N,N,1,M,V);
 
 		for(int j=0;j<N;j++)
-			O.Pontos[i].Coord[j]=V[j][0];
+			R.Pontos[i].Coord[j]=V[j][0];
 	}
+	return R;
 }
 void ImpObj(Obj O){
 	printf("\n Imprimindo %d pontos do objeto",O.QtdPontos);
@@ -384,11 +402,37 @@ void ImpObj(Obj O){
 }
 
 int main(){
-	Obj Cubo = PreencheObj(4);
-	float e[4] = {1,1,2,1};
-	float** E = Escala(4,e);
-	Transforma(Cubo,E,4);
+	Obj Cubo, CT;
+	//2 formas de preencher os objetos. 1- Pela função PreencheObj, que vai abrir no terminal p/ digitar ponto a ponto. E 2 - explicitamente, como abaixo:
+	Ponto*P; 
+	P = (Ponto *)malloc(sizeof(Ponto)*8);
+	float P1[4] = {0,0,1,1};
+	P[0] = PreencheP(P1);
+	float P2[4] = {1,0,1,1};
+	P[1] = PreencheP(P2);
+	float P3[4] = {1,0,0,1};
+	P[2] = PreencheP(P3);
+	float P4[4] = {0,0,0,1};
+	P[3] = PreencheP(P4);
+	float P5[4] = {0,1,1,1};
+	P[4] = PreencheP(P5);
+	float P6[4] = {1,1,1,1};
+	P[5] = PreencheP(P6);
+	float P7[4] = {1,1,0,1};
+	P[6] = PreencheP(P7);
+	float P8[4] = {0,1,0,1};
+	P[7] = PreencheP(P8);
+
+	Cubo.Pontos=P;
+	Cubo.QtdPontos=8;
 	ImpObj(Cubo);
+
+	float e[4] = {2,2,2,1};
+	float** E = Escala(4,e);
+	CT= Transforma(Cubo,E,4);
+
+	ImpObj(CT);
+
 	
 	system("pause");
     return 0;
