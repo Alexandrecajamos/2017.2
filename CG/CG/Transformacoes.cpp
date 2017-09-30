@@ -314,6 +314,7 @@ float** RotacaoArb(int N, float A, float* V){
 	return Rot;
 }
 float** RQ(float A, float* V){
+	A = A/2;
 	float *q1, *q2, **Lq1, **Rq2, **rot;
 	q1 = (float *)malloc(sizeof(float)*4);
 	q2 = (float *)malloc(sizeof(float)*4);
