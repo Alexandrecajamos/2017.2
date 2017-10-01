@@ -94,6 +94,12 @@ float** sub(int M, int N, float** A, float** B){
 	}
 	return C;
 }
+float* subVetor(int N, float* A, float* B){
+	float* v = (float *)malloc(sizeof(float)*N);
+	for(int i=0;i<N;i++)
+		v[i]=A[i]-B[i];
+	return v;
+}
 float** MatIdentidade(int N)
 {
     float **mat;
@@ -175,6 +181,7 @@ float* Normal(int N, float* A, float* B){
 	n[0] = (A[1]*B[2])-(A[2]*B[1]); 
 	n[1] = (A[2]*B[0])-(A[0]*B[2]);
 	n[2] = (A[0]*B[1])-(A[1]*B[0]);
+	n[3] = 0;
 	float norma = NormaVetor(N,n);
 	Escalar(N,n,(1/norma));
 	return n;
@@ -226,7 +233,6 @@ float** Cisalhamento(float A, int I1, int I2){
 	C[I2][I1] = T;
 	return C;
 }
-
 float** Translacao(int N, float* V){
 	float** T = MatIdentidade(N+1);
 	for(int i=0;i<N;i++)
@@ -237,7 +243,7 @@ float** EspelhoArb(int N, float** V){
 	float** E = MatIdentidade(N+1); //E = I -2n*nt
 	float** nt = Transposta(N,1,V);
 	float** H = mult(N,1,N,V,nt);
-	pEscalar(-2,N,N,H); 
+	pEscalar(2,N,N,H);
 	H[N]=(float*)malloc(sizeof(float)*N);
 	for(int i=0;i<=N;i++){
 		H[i][N]=0;
@@ -403,8 +409,9 @@ void ImpObj(Obj O){
 }
 
 int main(){
-	Obj Cubo, CT;
+	Obj Cubo, CT, obj;
 	//2 formas de preencher os objetos. 1- Pela função PreencheObj, que vai abrir no terminal p/ digitar ponto a ponto. E 2 - explicitamente, como abaixo:
+	/*
 	Ponto*P; 
 	P = (Ponto *)malloc(sizeof(Ponto)*8);
 	float P1[4] = {0,0,1,1};
@@ -427,14 +434,16 @@ int main(){
 	Cubo.Pontos=P;
 	Cubo.QtdPontos=8;
 	ImpObj(Cubo);
-
-	float e[4] = {2,2,2,1};
-	float** E = Escala(4,e);
-	CT= Transforma(Cubo,E,4);
-
-	ImpObj(CT);
+	*/
+	
+	//float e[4] = {2,2,2,1};
+	//float** T = Translacao(3,e);
+	//float** T = Escala(4,e);
+	//CT= Transforma(Cubo,T,4);
+	//ImpObj(CT);
 
 	
+
 	system("pause");
     return 0;
 }
