@@ -253,7 +253,7 @@ float** EspelhoArb(int N, float** V){
 	return E;
 }
 float** Rotacao(int N, int E,float A){
-	float** M = MatIdentidade(N);
+	float** M = MatIdentidade(N+1);
 	float S = sin(A*PI/180);
 	float C = cos(A*PI/180);
 	for(int i=0;i<N;i++){
