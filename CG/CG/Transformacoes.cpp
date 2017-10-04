@@ -301,8 +301,8 @@ float** RotacaoArb(int N, float A, float* V){
 	Rx = Rotacao2(N,0,A,S,C);
 	printf("\nRotacao em x\n");imp(N,N,Rx);
 	H = NormaVetor(N,V);
-	S = L/H;
-	C = V[0]/H;
+	S = V[0]/H;
+	C = L/H;
 	Ry = Rotacao2(N,1,A,S,C);
 	Ry = Transposta(N,N,Ry);
 	printf("\nRotacao em y-\n");imp(N,N,Ry);
@@ -317,14 +317,18 @@ float** RotacaoArb(int N, float A, float* V){
 	Rot = mult(N,N,N,Ry,Rot);
 	Rot = mult(N,N,N,Rx,Rot);
 
-	return Rot;
+	float **Id = MatIdentidade(N+1);
+	for(int i=0;i<N;i++)
+		for(int j=0;j<N;j++)
+			Id[i][j]=Rot[i][j];
+	return Id;
 }
 float** RQ(float A, float* V){
 	A = A/2;
 	float *q1, *q2, **Lq1, **Rq2, **rot;
 	q1 = (float *)malloc(sizeof(float)*4);
 	q2 = (float *)malloc(sizeof(float)*4);
-	float mV=NormaVetor(3,V);
+	float mV=NormaVetor(4,V);
 	//printf("Norma Vetor = %f\n",mV);
 	for(int i=0;i<3;i++){
 		float aux = (sin(A*PI/180)*(V[i]/mV));
@@ -409,40 +413,103 @@ void ImpObj(Obj O){
 }
 
 int main(){
-	Obj Cubo, CT, obj;
-	//2 formas de preencher os objetos. 1- Pela função PreencheObj, que vai abrir no terminal p/ digitar ponto a ponto. E 2 - explicitamente, como abaixo:
-	/*
+
+	Obj obj, objT; 
+	
 	Ponto*P; 
-	P = (Ponto *)malloc(sizeof(Ponto)*8);
-	float P1[4] = {0,0,1,1};
+	P = (Ponto *)malloc(sizeof(Ponto)*3);
+	float P1[4] = {1,1,1,1};
 	P[0] = PreencheP(P1);
-	float P2[4] = {1,0,1,1};
+	float P2[4] = {3,3,4,1};
 	P[1] = PreencheP(P2);
-	float P3[4] = {1,0,0,1};
+	float P3[4] = {2,2,10,1};
 	P[2] = PreencheP(P3);
-	float P4[4] = {0,0,0,1};
-	P[3] = PreencheP(P4);
-	float P5[4] = {0,1,1,1};
-	P[4] = PreencheP(P5);
-	float P6[4] = {1,1,1,1};
-	P[5] = PreencheP(P6);
-	float P7[4] = {1,1,0,1};
-	P[6] = PreencheP(P7);
-	float P8[4] = {0,1,0,1};
-	P[7] = PreencheP(P8);
+	//float P4[4] = {2,5,3,1};
+	//P[3] = PreencheP(P4);
+	obj.Pontos=P;
+	obj.QtdPontos=3;
+	
 
-	Cubo.Pontos=P;
-	Cubo.QtdPontos=8;
-	ImpObj(Cubo);
+
+	
+	/*5) Rotação: Construa uma matriz (concatenação de matrizes) para aplicar uma
+rotação do triângulo P1P2P3 em torno de seu lado P1P2. O ângulo de rotação é
+60 graus a direção da rotação é dada pelo vetor P1P2.
+		
+	float O[4] = {0,0,0,1};
+	float* t = subVetor(4,O,P1);
+	float **T1 = Translacao(3,t);
+	float **T2 = Translacao(3,P1);
+	float *v = subVetor(4,P2,P1);
+	float** Ra = RotacaoArb(3,60,v);
+	float** T = mult(4,4,4,T2,Ra);
+	T = mult(4,4,4,T,T1);
+
+	imp(4,4,T);
+	ImpObj(obj);
+	objT = Transforma(obj,T,4);
+	ImpObj(objT);
 	*/
+	/*Teste Espelho Arbitrário em torno do triangulo
 	
-	//float e[4] = {2,2,2,1};
-	//float** T = Translacao(3,e);
-	//float** T = Escala(4,e);
-	//CT= Transforma(Cubo,T,4);
-	//ImpObj(CT);
+	float O[4] = {0,0,0,1};
+	float* t = subVetor(4,O,P1);
+	float **T1 = Translacao(3,t);
+	float **T2 = Translacao(3,P1);
 
+	float* A = subVetor(4,P2,P1); // vP1P2 
+	float* B = subVetor(4,P3,P1); // vP1P3 
+	float* v = Normal(4,A,B);
+	impVet(4,v);
+	float** Ea = EspelhoArb(3,VetorColuna(4,v));
 	
+	float** T = mult(4,4,4,T2,Ea);
+	T = mult(4,4,4,T,T1);
+	imp(4,4,T);
+	ImpObj(obj);
+	objT = Transforma(obj,T,4);
+	ImpObj(objT);
+	*/
+
+	/*Teste com Quaternio Rotação em torno do eixo vP1P2 
+
+	float O[4] = {0,0,0,1};
+	float* t = subVetor(4,O,P1);
+	float **T1 = Translacao(3,t);
+	float **T2 = Translacao(3,P1);
+	float *v = subVetor(4,P2,P1);
+	float** Q = RQ(60,v);
+	float** T = mult(4,4,4,T2,Q);
+	T = mult(4,4,4,T,T1);
+	imp(4,4,T);
+	ImpObj(obj);
+	objT = Transforma(obj,T,4);
+	ImpObj(objT);
+		*/
+	/*6) Rotação com quatérnio:
+a) Ache um ponto P5 que seja a projeção do ponto P3 no eixo P1P2 (P5 é o ponto
+do eixo P1P2 que está mais próximo de P3);
+b) Calcule o vetor P5P3;
+c) Gire o vetor P5P3 de 60 graus aplicando sobre ele um quatérnio cujo eixo de
+rotação tem a mesma direção e sentido do vetor P1P2. O vetor resultante é P5P3’
+(Dica: construa o quatérnio unitário e sua matriz L, aplique a matriz L sobre
+P5P3);
+d) Verifique, usando produto escalar, se o ângulo entre os vetores P5P3 e P5P3’ é
+realmente 60 graus;
+e) Ache as coordenadas do ponto P3’;
+f) Usando quatérnio, ache a rotação de 60 graus sobre o eixo P1P2 do vetor P1P3
+resultando em um vetor P1P3’;
+g) Ache as coordenadas do ponto P3’ = P1 + P1P3’ e compare com o resultado do
+item e)
+	float O[4] = {0,0,0,1};
+	float* t = subVetor(4,O,P1);
+	float **T1 = Translacao(3,t);
+	float **T2 = Translacao(3,P1);
+	float P5[4] = {4.647,4.647,6.667,1};
+	float* V5 = subVetor(4,P3,P5);
+	impVet(4,V5);.*/
+
+
 
 	system("pause");
     return 0;

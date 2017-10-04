@@ -1,4 +1,4 @@
-﻿Build started 01/10/2017 18:08:31.
+﻿Build started 03/10/2017 21:33:10.
      1>Project "C:\Users\alexa\2017.2\CG\CG\CG.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\CG.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -13,11 +13,9 @@
      1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(231): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
      1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(257): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
      1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(258): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(330): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(334): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(335): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(412): warning C4101: 'Cubo' : unreferenced local variable
-     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(412): warning C4101: 'CT' : unreferenced local variable
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(334): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(338): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(339): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
        ManifestResourceCompile:
          All outputs are up-to-date.
        Link:
@@ -36,4 +34,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.73
+Time Elapsed 00:00:00.67
