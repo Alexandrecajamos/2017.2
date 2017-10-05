@@ -418,19 +418,68 @@ int main(){
 	
 	Ponto*P; 
 	P = (Ponto *)malloc(sizeof(Ponto)*3);
-	float P1[4] = {1,1,1,1};
+	float P1[4] = {0,0,0,1};
 	P[0] = PreencheP(P1);
-	float P2[4] = {3,3,4,1};
+	float P2[4] = {0,0,9,1};
 	P[1] = PreencheP(P2);
-	float P3[4] = {2,2,10,1};
+	float P3[4] = {11,0,0,1};
 	P[2] = PreencheP(P3);
-	//float P4[4] = {2,5,3,1};
-	//P[3] = PreencheP(P4);
+	float P4[4] = {0,6,0,1};
+	P[3] = PreencheP(P4);
 	obj.Pontos=P;
-	obj.QtdPontos=3;
+	obj.QtdPontos=4;
 	
+	ImpObj(obj);
 
 
+	//Q1 
+	float f = sqrt(50.0);
+	//printf("x = %f",x);
+	float x = f/P3[0];
+	float y = f/P4[1];
+	float z = f/P2[2];
+	float ve[4] = {x,y,z,1};
+	//impVet(4,ve);
+
+	float ** E = Escala(4,ve);
+	//imp(4,4,E);
+	objT = Transforma(obj,E,4);
+	ImpObj(objT);
+	//float s = ((P3[0]-P4[0])*(P3[0]-P4[0]))+((P3[1]-P4[1])*(P3[1]-P4[1]))+((P3[0]-P4[2])*(P3[2]-P4[2]));
+	//float d = sqrt(s);
+	//printf("Distancia P2 P3 = %f ",d);
+	
+	//Q2
+	float* t = subVetor(4,P1,objT.Pontos[3].Coord);
+	float **T1 = Translacao(3,t);
+	float **T2 = Translacao(3,objT.Pontos[3].Coord);
+
+	float* v = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
+	float** Q = RQ(125.199,v);
+	float** T = mult(4,4,4,T2,Q);
+	T = mult(4,4,4,T,T1);
+
+	imp(4,4,T);
+	objT = Transforma(objT,T,4);
+	ImpObj(objT);
+	//Transladar p/ p3'
+
+	//Q3 
+	/*
+	float* t = subVetor(4,P1,objT.Pontos[1].Coord);
+	float **T1 = Translacao(3,t);
+	float **T2 = Translacao(3,objT.Pontos[1].Coord);
+
+	float* A = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[0].Coord); // vP1P4 
+	float* B = subVetor(4,objT.Pontos[1].Coord,objT.Pontos[0].Coord); // vP1P2 
+	float* v = Normal(4,A,B);
+	impVet(4,v);
+	float** Ea = EspelhoArb(3,VetorColuna(4,v));
+	
+	float** T = mult(4,4,4,T2,Ea);
+	T = mult(4,4,4,T,T1);
+	objT = Transforma(objT,T,4);
+	ImpObj(objT);
 	
 	/*5) Rotação: Construa uma matriz (concatenação de matrizes) para aplicar uma
 rotação do triângulo P1P2P3 em torno de seu lado P1P2. O ângulo de rotação é
@@ -505,9 +554,17 @@ item e)
 	float* t = subVetor(4,O,P1);
 	float **T1 = Translacao(3,t);
 	float **T2 = Translacao(3,P1);
-	float P5[4] = {4.647,4.647,6.667,1};
-	float* V5 = subVetor(4,P3,P5);
-	impVet(4,V5);.*/
+	float* v = subVetor(4,P2,P1);
+	float nv = NormaVetor(4,v);
+	Escalar(4,v,1/nv);
+	float f = (v[0]*P3[0])+(v[1]*P3[1])+(v[2]*P3[2]);
+	Escalar(4,v,f);
+	//Somar  v+P1 para obter p5 
+	v[0] += 1; v[1]+=1; v[2]+=1; v[3]+=1;
+	impVet(4,v);
+
+	//v = p5; 
+	*/
 
 
 
