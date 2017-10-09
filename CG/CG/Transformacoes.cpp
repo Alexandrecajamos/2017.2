@@ -100,6 +100,12 @@ float* subVetor(int N, float* A, float* B){
 		v[i]=A[i]-B[i];
 	return v;
 }
+float* somaVetor(int N, float* A, float* B){
+	float* v = (float *)malloc(sizeof(float)*N);
+	for(int i=0;i<N;i++)
+		v[i]=A[i]+B[i];
+	return v;
+}
 float** MatIdentidade(int N)
 {
     float **mat;
@@ -337,6 +343,34 @@ float** RQ(float A, float* V){
 	}
 	q1[3] = cos(A*PI/180);
 	q2[3] = cos(A*PI/180);
+	impVet(4,q1);
+	impVet(4,q2);
+	Lq1 = Mat_Left_Quat(q1);
+	//imp(4,4,Lq1);
+	Rq2 = Mat_Right_Quat(q2);
+	//imp(4,4,Rq2);
+	rot = mult(4,4,4,Lq1,Rq2);
+	return rot;
+}
+float** RQ2(float CosA, float* V){
+
+	float *q1, *q2, **Lq1, **Rq2, **rot;
+	float CA = 0.5*(CosA+1);
+	CA = sqrt(CA);
+	float SA = 0.5*(1-CosA);
+	SA = sqrt(SA);
+
+	q1 = (float *)malloc(sizeof(float)*4);
+	q2 = (float *)malloc(sizeof(float)*4);
+	float mV=NormaVetor(4,V);
+	//printf("Norma Vetor = %f\n",mV);
+	for(int i=0;i<3;i++){
+		float aux = (SA*(V[i]/mV));
+		q1[i]= aux;
+		q2[i]=-aux;
+	}
+	q1[3] = CA;
+	q2[3] = CA;
 	//impVet(4,q1);
 	//impVet(4,q2);
 	Lq1 = Mat_Left_Quat(q1);
@@ -346,7 +380,6 @@ float** RQ(float A, float* V){
 	rot = mult(4,4,4,Lq1,Rq2);
 	return rot;
 }
-
 struct Ponto{
 	float Coord[4];
 };
@@ -426,64 +459,50 @@ int main(){
 	P[2] = PreencheP(P3);
 	float P4[4] = {0,6,0,1};
 	P[3] = PreencheP(P4);
+	
 	obj.Pontos=P;
 	obj.QtdPontos=4;
-	
 	ImpObj(obj);
-
-
-	//Q1 
-	float f = sqrt(50.0);
-	//printf("x = %f",x);
-	float x = f/P3[0];
-	float y = f/P4[1];
-	float z = f/P2[2];
-	float ve[4] = {x,y,z,1};
-	//impVet(4,ve);
-
-	float ** E = Escala(4,ve);
+	float r50 = sqrt(50.0);
+	float ex,ey,ez;
+	ex = r50/P3[0];ey = r50/P4[1];ez = r50/P2[2];
+	float ve[4] = {ex,ey,ez,1};
+	float **E = Escala(4,ve);
 	//imp(4,4,E);
 	objT = Transforma(obj,E,4);
 	ImpObj(objT);
-	//float s = ((P3[0]-P4[0])*(P3[0]-P4[0]))+((P3[1]-P4[1])*(P3[1]-P4[1]))+((P3[0]-P4[2])*(P3[2]-P4[2]));
-	//float d = sqrt(s);
-	//printf("Distancia P2 P3 = %f ",d);
-	
-	//Q2
-	float* t = subVetor(4,P1,objT.Pontos[3].Coord);
-	float **T1 = Translacao(3,t);
-	float **T2 = Translacao(3,objT.Pontos[3].Coord);
 
-	float* v = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
-	float** Q = RQ(125.199,v);
+	float* t1 = subVetor(4,P1,objT.Pontos[2].Coord);
+	float **T1 = Translacao(3,t1);
+	float **T2 = Translacao(3,objT.Pontos[2].Coord);
+	float *v = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
+	
+	
+	float *M = somaVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
+	Escalar(4,M,0.5);
+	float c45 = sqrt(2.0)/2;
+	float v1[2] = {c45,c45};
+	float *v2 = subVetor(4,objT.Pontos[1].Coord,M);
+	float nv2 = NormaVetor(4,v2);
+	Escalar(4,v2,1/nv2);
+	float O = v1[0]*v2[0]+v1[1]*v2[1];
+	float** Q = RQ2(O,v);
 	float** T = mult(4,4,4,T2,Q);
 	T = mult(4,4,4,T,T1);
-
-	imp(4,4,T);
 	objT = Transforma(objT,T,4);
 	ImpObj(objT);
-	//Transladar p/ p3'
 
-	//Q3 
-	/*
-	float* t = subVetor(4,P1,objT.Pontos[1].Coord);
-	float **T1 = Translacao(3,t);
-	float **T2 = Translacao(3,objT.Pontos[1].Coord);
 
-	float* A = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[0].Coord); // vP1P4 
-	float* B = subVetor(4,objT.Pontos[1].Coord,objT.Pontos[0].Coord); // vP1P2 
-	float* v = Normal(4,A,B);
-	impVet(4,v);
-	float** Ea = EspelhoArb(3,VetorColuna(4,v));
+
+
+
+	//
 	
-	float** T = mult(4,4,4,T2,Ea);
-	T = mult(4,4,4,T,T1);
-	objT = Transforma(objT,T,4);
-	ImpObj(objT);
+
 	
 	/*5) Rotação: Construa uma matriz (concatenação de matrizes) para aplicar uma
 rotação do triângulo P1P2P3 em torno de seu lado P1P2. O ângulo de rotação é
-60 graus a direção da rotação é dada pelo vetor P1P2.
+60 graus a direção da rotação é  dada pelo vetor P1P2.
 		
 	float O[4] = {0,0,0,1};
 	float* t = subVetor(4,O,P1);
@@ -554,17 +573,9 @@ item e)
 	float* t = subVetor(4,O,P1);
 	float **T1 = Translacao(3,t);
 	float **T2 = Translacao(3,P1);
-	float* v = subVetor(4,P2,P1);
-	float nv = NormaVetor(4,v);
-	Escalar(4,v,1/nv);
-	float f = (v[0]*P3[0])+(v[1]*P3[1])+(v[2]*P3[2]);
-	Escalar(4,v,f);
-	//Somar  v+P1 para obter p5 
-	v[0] += 1; v[1]+=1; v[2]+=1; v[3]+=1;
-	impVet(4,v);
-
-	//v = p5; 
-	*/
+	float P5[4] = {4.647,4.647,6.667,1};
+	float* V5 = subVetor(4,P3,P5);
+	impVet(4,V5);.*/
 
 
 
