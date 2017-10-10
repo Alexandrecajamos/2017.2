@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ctime>
 #include <time.h>
+#include <math.h>
 
 void preenche(int l, int c, float **mat)
 {
@@ -487,6 +488,54 @@ bool ConfereLU(int N, float** LU, float** A){
 
     return Ret;
 }
+
+float** MMQ(int N, int M, float* x, float*y ){
+	float** matA;
+	matA = (float **)malloc(sizeof(float)*(M+1));
+    for (int i = 0; i < (M+1); i++)
+        matA[i] = (float *)malloc(sizeof(float)*(M+1));
+	
+	float* v = (float *)malloc(sizeof(float)*((M*2)+1));
+	float* v2 = (float *)malloc(sizeof(float)*(M+1));
+	v[0]=N;
+
+	matA[0][0]=N;
+	
+	for(int i=0;i<((M*2)+1);i++){
+		float X=0;
+		float Y=0;
+		if(i==0){
+			for(int j = 0;j<N;j++)
+				Y += y[j]*pow(x[j],i);
+			v2[i]=Y;
+		}else{
+			for(int j = 0;j<N;j++)
+				X+=pow(x[j],i);
+			v[i]=X;
+			if(i<=M){
+				for(int j = 0;j<N;j++)
+				Y += y[j]*pow(x[j],i);
+			
+				v2[i]=Y;
+				matA[0][i]= v[i];
+				matA[i][0]= v[i];
+			}
+		}
+	}
+	for(int i=1;i<=M;i++){
+		for(int j=1;j<=M;j++)
+			matA[i][j]=v[j+i];
+		
+	}
+	//impVet((2*M)+1,v);
+	imp(M+1,M+1,matA);
+	impVet(M+1,v2);
+
+	float *solGauss = Gauss(M+1,matA,v2);
+	impVet(M+1,v2);
+	return matA;
+}
+
 int main()
 {
    
@@ -494,11 +543,16 @@ int main()
 
     float **matA;
 
-    matA = (float **)malloc(sizeof(float)*N);
-    for (int i = 0; i < N; i++)
-        matA[i] = (float *)malloc(sizeof(float)*(N));
+    //matA = (float **)malloc(sizeof(float)*N);
+    //for (int i = 0; i < N; i++)
+      //  matA[i] = (float *)malloc(sizeof(float)*(N));
   
    
+	float x[4] = {-1,0,1,2};
+	float y[4] = {1,-1,2,3};
+	matA = MMQ(4,3,x,y);
+
+
     //Sistemas de equações lineares:
     /*
     preenche(N, N, matA);
@@ -534,7 +588,7 @@ int main()
 
    
     //Cholesky
-    
+    /*
     preenche(N,N,matA);
     float ** S = Cholesky(N,matA);
     float ** ST = Transposta(N,N,S);
@@ -549,7 +603,7 @@ int main()
 	printf("\nMult SxSt\n");
 	imp(N,N,multS);
 	
-    
+    */
 
     /*
     //Decomposição L e U com temporizacao:
