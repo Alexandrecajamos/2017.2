@@ -106,6 +106,12 @@ float* somaVetor(int N, float* A, float* B){
 		v[i]=A[i]+B[i];
 	return v;
 }
+float ProdutoEscalar(int N, float* A, float* B){
+	float soma = 0;
+	for(int i =0;i<N;i++)
+		soma+= A[i]*B[i];
+	return soma;
+}
 float** MatIdentidade(int N)
 {
     float **mat;
@@ -277,6 +283,26 @@ float** Rotacao(int N, int E,float A){
 	}
 	return M;
 }
+
+float** Rotacao2z(int N, int E,float CosA){
+	float** M = MatIdentidade(N+1);
+	float S = -sqrt(1-(CosA*CosA));
+	float C = CosA;
+	for(int i=0;i<N;i++){
+		if(i!=E)
+			for(int j=0;j<N;j++)
+				if(j!=E)
+					if(i!=j)
+						if((i>E && i!=0 && j!=1) || (j<E && j!=0))
+							M[i][j]=-S;
+						else
+							M[i][j]=S;	
+						
+					else
+						M[i][j]=C;
+	}
+	return M;
+}
 float** Rotacao2(int N, int E,float A, float Sen, float Cos){
 	float** M = MatIdentidade(N);
 	float S = Sen;
@@ -380,18 +406,48 @@ float** RQ2(float CosA, float* V){
 	rot = mult(4,4,4,Lq1,Rq2);
 	return rot;
 }
+
+
 struct Ponto{
 	float Coord[4];
 };
 struct Aresta{
-	Ponto *P1;
-	Ponto *P2;
+	Ponto P1;
+	Ponto P2;
+};
+struct Face{
+	Ponto P1;
+	Ponto P2;
+	Ponto P3;
 };
 struct Obj {
 	Ponto* Pontos;
-	int QtdPontos;
 	Aresta* A;
+	Face* F;
+	int QtdPontos, QtdArestas,QtdFaces;
+	Ponto CentroCirc;
+	float R;
+
 };
+void CalcCirc(Obj O){
+	//Procurar Maior X;
+	//Procurar Maior Y;
+	//Procurar Maior Z;
+	//Falta Implementar o restante
+	float mX=0,mY=0,mZ=0;
+	for(int i=0;i<O.QtdPontos;i++){
+		float x = O.Pontos[i].Coord[0];
+		float y = O.Pontos[i].Coord[1];
+		float z = O.Pontos[i].Coord[2];
+		if(x>mX)
+			mX = x;
+		if(y>mY)
+			mY = y;
+		if(z>mZ)
+			mZ = z;
+	}
+
+}
 
 Ponto* VetorPontos(int N){
 	Ponto* P = (Ponto *)malloc(sizeof(Ponto)*N);
@@ -444,9 +500,138 @@ void ImpObj(Obj O){
 		}
 	}printf("\n");
 }
+bool intersecciona(Obj O, float *R){
+	bool I = false;
+	///IMplementar
+	//1 - Conferir se intersecciona Esfera;
+	//2 - Percorrer Faces 
+				//Descartar Faces em que o produto escalar do vetor unitário do Raio com o vetor unitário normal à Face for positivo
+
+
+	for(int i=0;i<O.QtdFaces;i++){
+		Face F = O.F[i];
+		float* v1 = subVetor(4,F.P2.Coord,F.P1.Coord);
+		float* v2 = subVetor(4,F.P3.Coord,F.P1.Coord);
+		float *nF = Normal(4,v1,v2);
+		//Descartar Faces  if(somaVetor(4,nF,R);
+
+	}
+
+
+	return I;
+}
+
+
+struct Observador{
+	float coord[4];
+	float i[4];
+	float j[4];
+	float k[4];
+};
+Observador ObsCalc(float *PO, float* LooK_At,float* Avup){
+	Observador Obs;
+	float* K = subVetor(4,PO,LooK_At);
+	float nK = NormaVetor(3,K);
+	Escalar(3,K,1/nK);
+	float *X = Normal(3,subVetor(3,Avup,PO),K);
+	float *J = Normal(3,K,X);
+	for(int i=0; i< 4;i++){
+		Obs.coord[i]=PO[i];
+		Obs.k[i]=K[i];
+		Obs.i[i]=X[i];
+		Obs.j[i]=J[i];
+	}
+	return Obs;
+}
+float** CAMtoWord(Observador O){
+	float** M = MatIdentidade(4);
+	for(int i=0;i<4;i++){
+		M[i][0]=O.i[i];
+		M[i][1]=O.j[i];
+		M[i][2]=O.k[i];
+		M[i][3]=O.coord[i];
+	}
+	return M;
+}
+float** WtoCam(Observador O){
+	float** M = MatIdentidade(4);
+	for(int i=0;i<3;i++){
+		M[0][i]=-O.i[i];
+		M[1][i]=-O.j[i];
+		M[2][i]=-O.j[i];
+	}
+	M[0][3]= -ProdutoEscalar(4, O.i,O.coord);
+	M[1][3]= -ProdutoEscalar(4, O.j,O.coord);
+	M[2][3]= -ProdutoEscalar(4, O.k,O.coord);
+
+	return M;
+}
+
+struct JanelaVis{
+	float d,W,H;
+	int N,M;
+};
+
+struct Cenario{
+	Observador O;
+	Obj *Objetos;
+};
+
+
+Ponto** PixelsCoord(JanelaVis J){
+	float DX,DY;
+	DX=J.W/J.M;
+	DY=J.H/J.N;
+
+	Ponto** Pix = (Ponto **)malloc(sizeof(Ponto)*J.N);
+    for (int i = 0; i < J.N; i++)
+        Pix[i] = (Ponto *)malloc(sizeof(Ponto)*J.M);
+		
+	for(int i=0;i<J.N;i++){
+		float Yi= (J.H/2)-(DY/2)-(i*DY);
+		for(int j=0;j<J.M;j++){
+			float Xj = (-J.W/2)+(DX/2)+(j*DX);
+			Pix[i][j].Coord[0]=Xj;
+			Pix[i][j].Coord[1]=Yi;
+			Pix[i][j].Coord[2]=-J.d;
+			
+		}
+	}
+	return Pix;
+}
+
 
 int main(){
 
+
+	JanelaVis J;
+	J.W=5;
+	J.d=5;
+	J.H=5;
+	J.M=10;
+	J.N=10;
+	
+	Ponto** Pixs = PixelsCoord(J);
+
+/*
+	float PO[4] = {1,3,4,1};
+	float LA[4] = {5,4,3,1};
+	float Avup[4] = {5,9,3,1};
+	Observador O;
+	O = ObsCalc(PO,LA,Avup);
+
+	impVet(4,O.k);
+	float** T = CAMtoWord(O);
+	float** T2 = WtoCam(O);
+	imp(4,4,T);
+	imp(4,4,T2);
+	float** I = mult(4,4,4,T,T2);
+	imp(4,4,I);
+
+	*/
+
+
+	/*
 	Obj obj, objT; 
 	
 	Ponto*P; 
@@ -474,7 +659,9 @@ int main(){
 
 	float* t1 = subVetor(4,P1,objT.Pontos[2].Coord);
 	float **T1 = Translacao(3,t1);
-	float **T2 = Translacao(3,objT.Pontos[2].Coord);
+	float P3B[4] = {60,90,0,1};
+	float* t2 = subVetor(4,P3B,P1);
+	float **T2 = Translacao(3,t2);
 	float *v = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
 	
 	
@@ -485,99 +672,56 @@ int main(){
 	float *v2 = subVetor(4,objT.Pontos[1].Coord,M);
 	float nv2 = NormaVetor(4,v2);
 	Escalar(4,v2,1/nv2);
-	float O = v1[0]*v2[0]+v1[1]*v2[1];
+
+	float* a = subVetor(4,objT.Pontos[2].Coord,objT.Pontos[1].Coord);
+	float* b = subVetor(4,P3B,objT.Pontos[2].Coord);
+	float na = NormaVetor(4,a);
+	float nb = NormaVetor(4,b);
+	
+	Escalar(4,a,1/na);
+	Escalar(4,b,1/nb);
+	float teta = ProdutoEscalar(4,a,b);
+	//printf("O = %f", teta);
+	float **Rz = Rotacao2z(3,2, teta);
+
+	float O = ProdutoEscalar(2, v1,v2);
 	float** Q = RQ2(O,v);
-	float** T = mult(4,4,4,T2,Q);
+	//Rotação em Z 
+
+
+	float** T = mult(4,4,4,T2,Rz);
+	T= mult(4,4,4,T,Q);
+	T = mult(4,4,4,T,T1);
+	
+	
+	objT = Transforma(objT,T,4);
+	ImpObj(objT);
+
+	printf("\n Matrizes em ordem T1, RQ, Rz, T2 \n");
+	imp(4,4,T1);
+	imp(4,4,Rz);
+	imp(4,4,Q);
+	imp(4,4,T2);
+	
+
+	//Questão 3 
+
+	float* e1 = subVetor(4, objT.Pontos[1].Coord,objT.Pontos[0].Coord); // Vetor P1P2
+	float* e2 = subVetor(4, objT.Pontos[3].Coord,objT.Pontos[0].Coord); // Vetor P1P2
+	float* n = Normal(4,e1,e2);
+	float** Es = EspelhoArb(3,VetorColuna(4,n));
+	t1 = subVetor(4, P1,objT.Pontos[0].Coord);// Vetor OP1
+	T1 = Translacao(3,t1);
+	T2 = Translacao(3,objT.Pontos[0].Coord);
+	T = mult(4,4,4,T2,Es);
 	T = mult(4,4,4,T,T1);
 	objT = Transforma(objT,T,4);
 	ImpObj(objT);
 
-
-
-
-
 	//
 	
-
-	
-	/*5) Rotação: Construa uma matriz (concatenação de matrizes) para aplicar uma
-rotação do triângulo P1P2P3 em torno de seu lado P1P2. O ângulo de rotação é
-60 graus a direção da rotação é  dada pelo vetor P1P2.
-		
-	float O[4] = {0,0,0,1};
-	float* t = subVetor(4,O,P1);
-	float **T1 = Translacao(3,t);
-	float **T2 = Translacao(3,P1);
-	float *v = subVetor(4,P2,P1);
-	float** Ra = RotacaoArb(3,60,v);
-	float** T = mult(4,4,4,T2,Ra);
-	T = mult(4,4,4,T,T1);
-
-	imp(4,4,T);
-	ImpObj(obj);
-	objT = Transforma(obj,T,4);
-	ImpObj(objT);
 	*/
-	/*Teste Espelho Arbitrário em torno do triangulo
 	
-	float O[4] = {0,0,0,1};
-	float* t = subVetor(4,O,P1);
-	float **T1 = Translacao(3,t);
-	float **T2 = Translacao(3,P1);
-
-	float* A = subVetor(4,P2,P1); // vP1P2 
-	float* B = subVetor(4,P3,P1); // vP1P3 
-	float* v = Normal(4,A,B);
-	impVet(4,v);
-	float** Ea = EspelhoArb(3,VetorColuna(4,v));
-	
-	float** T = mult(4,4,4,T2,Ea);
-	T = mult(4,4,4,T,T1);
-	imp(4,4,T);
-	ImpObj(obj);
-	objT = Transforma(obj,T,4);
-	ImpObj(objT);
-	*/
-
-	/*Teste com Quaternio Rotação em torno do eixo vP1P2 
-
-	float O[4] = {0,0,0,1};
-	float* t = subVetor(4,O,P1);
-	float **T1 = Translacao(3,t);
-	float **T2 = Translacao(3,P1);
-	float *v = subVetor(4,P2,P1);
-	float** Q = RQ(60,v);
-	float** T = mult(4,4,4,T2,Q);
-	T = mult(4,4,4,T,T1);
-	imp(4,4,T);
-	ImpObj(obj);
-	objT = Transforma(obj,T,4);
-	ImpObj(objT);
-		*/
-	/*6) Rotação com quatérnio:
-a) Ache um ponto P5 que seja a projeção do ponto P3 no eixo P1P2 (P5 é o ponto
-do eixo P1P2 que está mais próximo de P3);
-b) Calcule o vetor P5P3;
-c) Gire o vetor P5P3 de 60 graus aplicando sobre ele um quatérnio cujo eixo de
-rotação tem a mesma direção e sentido do vetor P1P2. O vetor resultante é P5P3’
-(Dica: construa o quatérnio unitário e sua matriz L, aplique a matriz L sobre
-P5P3);
-d) Verifique, usando produto escalar, se o ângulo entre os vetores P5P3 e P5P3’ é
-realmente 60 graus;
-e) Ache as coordenadas do ponto P3’;
-f) Usando quatérnio, ache a rotação de 60 graus sobre o eixo P1P2 do vetor P1P3
-resultando em um vetor P1P3’;
-g) Ache as coordenadas do ponto P3’ = P1 + P1P3’ e compare com o resultado do
-item e)
-	float O[4] = {0,0,0,1};
-	float* t = subVetor(4,O,P1);
-	float **T1 = Translacao(3,t);
-	float **T2 = Translacao(3,P1);
-	float P5[4] = {4.647,4.647,6.667,1};
-	float* V5 = subVetor(4,P3,P5);
-	impVet(4,V5);.*/
-
-
 
 	system("pause");
     return 0;
