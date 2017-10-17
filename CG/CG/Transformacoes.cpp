@@ -288,6 +288,8 @@ float** Rotacao2z(int N, int E,float CosA){
 	float** M = MatIdentidade(N+1);
 	float S = -sqrt(1-(CosA*CosA));
 	float C = CosA;
+	printf("\nCa = %f",C);
+	printf("\nSenA = %f",S);
 	for(int i=0;i<N;i++){
 		if(i!=E)
 			for(int j=0;j<N;j++)
@@ -383,8 +385,10 @@ float** RQ2(float CosA, float* V){
 	float *q1, *q2, **Lq1, **Rq2, **rot;
 	float CA = 0.5*(CosA+1);
 	CA = sqrt(CA);
+	//printf("\nCa = %f",CA);
 	float SA = 0.5*(1-CosA);
 	SA = sqrt(SA);
+	//printf("Sa = %f\n",SA);
 
 	q1 = (float *)malloc(sizeof(float)*4);
 	q2 = (float *)malloc(sizeof(float)*4);
@@ -429,24 +433,52 @@ struct Obj {
 	float R;
 
 };
-void CalcCirc(Obj O){
-	//Procurar Maior X;
-	//Procurar Maior Y;
-	//Procurar Maior Z;
-	//Falta Implementar o restante
-	float mX=0,mY=0,mZ=0;
-	for(int i=0;i<O.QtdPontos;i++){
-		float x = O.Pontos[i].Coord[0];
-		float y = O.Pontos[i].Coord[1];
-		float z = O.Pontos[i].Coord[2];
-		if(x>mX)
-			mX = x;
-		if(y>mY)
-			mY = y;
-		if(z>mZ)
-			mZ = z;
-	}
+Ponto PreencheP(float* V){
+	Ponto P;
+	for(int i=0; i< 4;i++)
+		P.Coord[i]= V[i];	
+	return P;
+}
+void CalcCirc(Obj* O){
 
+	float MX=O->Pontos[0].Coord[0],MY=O->Pontos[0].Coord[1],MZ= O->Pontos[0].Coord[2];
+	float mX=MX,mY=MY,mZ=MZ;
+
+	for(int i=0;i<O->QtdPontos;i++){
+
+		float x = O->Pontos[i].Coord[0];
+		float y = O->Pontos[i].Coord[1];
+		float z = O->Pontos[i].Coord[2];
+
+		if(x<mX)
+			mX = x;
+		if(x>MX)
+			MX = x;
+		if(y<mY)
+			mY = y;
+		if(y>MY)
+			MY = y;
+		if(z<mZ)
+			mZ = z;
+		if(z>MZ)
+			MZ = z;
+
+	}
+	//printf("Teste Círculo de obj, Maior x = %f, y =%f e z =%f, Menor x = %f, y = %f, z = %f", MX,MY,MZ,mX,mY,mZ); 
+	float Centro[4] = {(MX+mX)/2,(MY+mY)/2,(MZ+mZ)/2,1};
+	//impVet(4,Centro);
+	O->CentroCirc = PreencheP(Centro);
+	float dx = abs(MX)+abs(mX);
+	float dy = abs(MY)+abs(mY);
+	float dz = abs(MZ)+abs(mZ);
+	float d = 0;
+	if(dx>dy && dx>dz)
+		d = dx;
+	else if(dy>dz)
+		d = dy;
+	else 
+		d = dz;
+	O->R=d/2;
 }
 
 Ponto* VetorPontos(int N){
@@ -462,12 +494,6 @@ Obj PreencheObj(int QtdP){
 	obj.Pontos=P;
 	obj.QtdPontos = QtdP;
 	return obj;
-}
-Ponto PreencheP(float* V){
-	Ponto P;
-	for(int i=0; i< 4;i++)
-		P.Coord[i]= V[i];	
-	return P;
 }
 Obj CopiaObj(Obj A){
 	Obj O;
@@ -500,23 +526,34 @@ void ImpObj(Obj O){
 		}
 	}printf("\n");
 }
-bool intersecciona(Obj O, float *R){
+bool intersecciona(Obj O, float *R, Ponto Pij){
 	bool I = false;
 	///IMplementar
 	//1 - Conferir se intersecciona Esfera;
 	//2 - Percorrer Faces 
 				//Descartar Faces em que o produto escalar do vetor unitário do Raio com o vetor unitário normal à Face for positivo
 
+	float a = ProdutoEscalar(4,Pij.Coord,Pij.Coord);
+	float b = ProdutoEscalar(4,Pij.Coord,O.CentroCirc.Coord);
+	b = -2*b;
+	float c = ProdutoEscalar(4,O.CentroCirc.Coord,O.CentroCirc.Coord);
+	c = c-(O.R*O.R);
+	float Delta = ((b*b)-4*a*c);
+	
 
-	for(int i=0;i<O.QtdFaces;i++){
-		Face F = O.F[i];
-		float* v1 = subVetor(4,F.P2.Coord,F.P1.Coord);
-		float* v2 = subVetor(4,F.P3.Coord,F.P1.Coord);
-		float *nF = Normal(4,v1,v2);
-		//Descartar Faces  if(somaVetor(4,nF,R);
+	if(Delta>=0){ 
+		for(int i=0;i<O.QtdFaces;i++){
+			Face F = O.F[i];
+			float* v1 = subVetor(4,F.P2.Coord,F.P1.Coord);
+			float* v2 = subVetor(4,F.P3.Coord,F.P1.Coord);
+			float *nF = Normal(4,v1,v2);
+			
+			if(ProdutoEscalar(4,R,nF)<0)
+				//Descartar Faces  if(somaVetor(4,nF,R);
+				printf("Percorrer Faces");
 
+		}
 	}
-
 
 	return I;
 }
@@ -575,6 +612,7 @@ struct JanelaVis{
 struct Cenario{
 	Observador O;
 	Obj *Objetos;
+	int QtdObjetos;
 };
 
 
@@ -603,7 +641,29 @@ Ponto** PixelsCoord(JanelaVis J){
 
 int main(){
 
+	Obj obj; 
+	
+	Ponto*P; 
+	P = (Ponto *)malloc(sizeof(Ponto)*3);
+	float P1[4] = {0,0,0,1};
+	P[0] = PreencheP(P1);
+	float P2[4] = {0,0,9,1};
+	P[1] = PreencheP(P2);
+	float P3[4] = {11,0,-3,1};
+	P[2] = PreencheP(P3);
+	float P4[4] = {0,6,0,1};
+	P[3] = PreencheP(P4);
+	
+	obj.Pontos=P;
+	obj.QtdPontos=4;
+	ImpObj(obj);
+	CalcCirc(&obj);
+	printf("\n Centro : \n");
+	impVet(4,obj.CentroCirc.Coord);
+	printf("\n Raio= %f; \n", obj.R);
 
+
+	/*
 	JanelaVis J;
 	J.W=5;
 	J.d=5;
@@ -613,7 +673,7 @@ int main(){
 	
 	Ponto** Pixs = PixelsCoord(J);
 
-/*
+
 	float PO[4] = {1,3,4,1};
 	float LA[4] = {5,4,3,1};
 	float Avup[4] = {5,9,3,1};
@@ -629,7 +689,6 @@ int main(){
 	imp(4,4,I);
 
 	*/
-
 
 	/*
 	Obj obj, objT; 
@@ -659,35 +718,34 @@ int main(){
 
 	float* t1 = subVetor(4,P1,objT.Pontos[2].Coord);
 	float **T1 = Translacao(3,t1);
-	float P3B[4] = {60,90,0,1};
+	float P3B[4] = {60,60,0,1};
 	float* t2 = subVetor(4,P3B,P1);
 	float **T2 = Translacao(3,t2);
-	float *v = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
 	
-	
-	float *M = somaVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
-	Escalar(4,M,0.5);
-	float c45 = sqrt(2.0)/2;
-	float v1[2] = {c45,c45};
-	float *v2 = subVetor(4,objT.Pontos[1].Coord,M);
-	float nv2 = NormaVetor(4,v2);
-	Escalar(4,v2,1/nv2);
 
 	float* a = subVetor(4,objT.Pontos[2].Coord,objT.Pontos[1].Coord);
 	float* b = subVetor(4,P3B,objT.Pontos[2].Coord);
 	float na = NormaVetor(4,a);
 	float nb = NormaVetor(4,b);
-	
 	Escalar(4,a,1/na);
 	Escalar(4,b,1/nb);
 	float teta = ProdutoEscalar(4,a,b);
-	//printf("O = %f", teta);
+	printf("O = %f", teta);
 	float **Rz = Rotacao2z(3,2, teta);
 
-	float O = ProdutoEscalar(2, v1,v2);
+	float *v = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
+	//impVet(4,v);
+	float *M = somaVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
+	Escalar(4,M,0.5);
+	float c45 = sqrt(2.0)/2;
+	float v1[4] = {c45,c45,0,0};
+	float *v2 = subVetor(4,objT.Pontos[1].Coord,M);
+	float nv2 = NormaVetor(4,v2);
+	Escalar(4,v2,1/nv2);
+	float O = ProdutoEscalar(4, v1,v2);
+	//printf("Cos O = %f",O);
 	float** Q = RQ2(O,v);
-	//Rotação em Z 
-
+	
 
 	float** T = mult(4,4,4,T2,Rz);
 	T= mult(4,4,4,T,Q);
@@ -697,18 +755,21 @@ int main(){
 	objT = Transforma(objT,T,4);
 	ImpObj(objT);
 
-	printf("\n Matrizes em ordem T1, RQ, Rz, T2 \n");
-	imp(4,4,T1);
-	imp(4,4,Rz);
-	imp(4,4,Q);
-	imp(4,4,T2);
+	//printf("\n Matrizes em ordem T1, RQ, Rz, T2 \n");
+	//imp(4,4,T1);
+	//imp(4,4,Q);
+	//imp(4,4,Rz);
+	//imp(4,4,T2);
 	
 
 	//Questão 3 
 
 	float* e1 = subVetor(4, objT.Pontos[1].Coord,objT.Pontos[0].Coord); // Vetor P1P2
-	float* e2 = subVetor(4, objT.Pontos[3].Coord,objT.Pontos[0].Coord); // Vetor P1P2
+	float* e2 = subVetor(4, objT.Pontos[3].Coord,objT.Pontos[0].Coord); // Vetor P1P4
+	impVet(4,e1);
+	impVet(4,e2);
 	float* n = Normal(4,e1,e2);
+	impVet(4,n);
 	float** Es = EspelhoArb(3,VetorColuna(4,n));
 	t1 = subVetor(4, P1,objT.Pontos[0].Coord);// Vetor OP1
 	T1 = Translacao(3,t1);
@@ -718,11 +779,13 @@ int main(){
 	objT = Transforma(objT,T,4);
 	ImpObj(objT);
 
+	imp(4,4,T1);
+	imp(4,4,Es);
+	imp(4,4,T2);
 	//
 	
-	*/
 	
-
+	*/
 	system("pause");
     return 0;
 }
