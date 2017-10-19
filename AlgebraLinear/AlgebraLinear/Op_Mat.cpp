@@ -536,6 +536,80 @@ float** MMQ(int N, int M, float* x, float*y ){
 	return matA;
 }
 
+float** Jacobi_Kint(int N, float** A, float *b, int K){
+	
+	float** x = (float **)malloc(sizeof(float)*N);
+		for (int i = 0; i < N; i++){
+			x[i]=(float *)malloc(sizeof(float)*(K));
+			x[i][0]=0;
+		}
+
+		for(int k=1;k<N;k++){
+			
+			for(int i=0;i<N;i++){
+				float som = 0;
+				for(int j=0;j<N;j++)
+					som+= (A[i][j]*x[j][k-1]);
+			
+				x[i][k]= (-som+b[i])/A[i][i];
+			}
+		}
+		return x;
+
+}
+float* Jacobi_error(int N, float** A, float *b, float e){
+
+	float *Xk = (float *)malloc(sizeof(float)*(N));
+	float *Xkb = (float *)malloc(sizeof(float)*(N));
+	for(int i=0;i<N;i++)
+		Xk[i]=0;
+	bool Error = true;
+	while(Error){
+		for(int i=0;i<N;i++){
+			float som = 0;
+			for(int j=0;j<N;j++)
+				som+= (A[i][j]*Xk[j]);
+			Xkb[i]= (-som+b[i])/A[i][i];
+		}
+		int cont=0;
+		for(int i=0;i<N;i++)
+			if((Xkb[i]-Xk[i])<e)
+				cont++;
+		if(cont==N)
+			Error=false;	
+		//Se o Erro ainda não foi satisfeito, enstão copiar vetor Kb p/ K;
+		if(Error)
+			for(int i=0;i<N;i++)
+				Xk[i]=Xkb[i];
+	}
+	return Xkb;
+}
+float** GaussSeidel_Kint(int N, float** A, float *b, int K){
+	
+	float** x = (float **)malloc(sizeof(float)*N);
+		for (int i = 0; i < N; i++){
+			x[i]=(float *)malloc(sizeof(float)*(K));
+			x[i][0]=0;
+		}
+
+		for(int k=1;k<N;k++){
+			
+			for(int i=0;i<N;i++){
+				float S = 0,S2=0;
+				for(int j=0;j<(i-1);j++)
+					S+= (A[i][j]*x[j][k-1]);
+				
+				for(int j=(i+1);j<N;j++)
+					S2+= (A[i][j]*x[j][k]);
+				
+				x[i][k]= (-S-S2+b[i])/A[i][i];
+			}
+		}
+		return x;
+
+}
+
+
 int main()
 {
    
