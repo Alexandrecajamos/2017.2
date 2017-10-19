@@ -176,7 +176,68 @@ float** VetorColuna(int N, float* V){
 	}
 	return v;
 }
+float* Gauss (int N, float **matA, float *vet2){
+  
+    float* vet1 = (float *)malloc(sizeof(float)*N);
+   
+    //Vetor auxiliar para alterar índices de incognitas em caso de pivotação
+    int* vetAux = (int *)malloc(sizeof(int)*N);
+    for(int k=0;k<N;k++){
+        vetAux[k] = k;
+    }
+    int i,j;
+    float alfa;
+    //Primeiro Passo
+    for(j=0;j<=(N-2);j++){
+        for(i=(j+1);i < N;i++){
+            //printf("\nValor j = %d, i = %d", j,i);
+            if(matA[i][j]!=0){
+                if(matA[j][j]==0){ //Pivotação
+                    float MJ = 0;
+                    int aux=0;
+                   
+                    for(int k=j+1; k<N;k++){
+                        if(matA[j][k]>MJ){
+                            MJ = matA[j][k];
+                            aux = k;
+                            }
+                    }
+                    int NC = aux; //Nova Coluna
+                    matA = TrocaColuna(N,N,N,j,NC,matA);
+                    //imp(N,N,matA);
+                    vetAux[j]=NC;
+                    vetAux[NC]=j;
+                }
+                alfa = (-matA[i][j])/matA[j][j];
+                matA[i][j] = 0;
+                for(int k=(j+1); k < N; k++){
+                    matA[i][k] = matA[i][k] + (matA[j][k]*alfa);
+                }
+               
+                vet2[i] = vet2[i] + (vet2[j]*alfa);
+                //printf("\nAlfa = %f; Valor A[j][j] = %f; valor B[i] = %f",alfa, matA[j][j],vet2[i]);
+            }
+        }
+    }
+    //Resubstituição
+   //imp(N,N,matA);
+   //impVet(N,vet2);
+    for(i = (N-1); i >=0; i--){
+        float soma = 0;
+        for(int k = i+1; k < N; k++)
+            soma += matA[i][k] * vet2[k];
+        vet2[i] = (vet2[i]-soma)/matA[i][i];
+      
+    }
 
+    //impVet(N,vet2);
+
+    for(int k=0;k<N;k++){
+        vet1[k]=vet2[vetAux[k]];
+    }
+  
+    return vet1;
+}
 float NormaVetor(int N, float* V){
 	float norma = 0;
 	for(int i=0;i<N;i++)
@@ -526,13 +587,14 @@ void ImpObj(Obj O){
 		}
 	}printf("\n");
 }
-bool intersecciona(Obj O, float *R, Ponto Pij){
-	bool I = false;
+float intersecciona(Obj O, Ponto Pij){
+	float T = -1;
 	///IMplementar
 	//1 - Conferir se intersecciona Esfera;
 	//2 - Percorrer Faces 
 				//Descartar Faces em que o produto escalar do vetor unitário do Raio com o vetor unitário normal à Face for positivo
-
+	
+	CalcCirc(&O);
 	float a = ProdutoEscalar(4,Pij.Coord,Pij.Coord);
 	float b = ProdutoEscalar(4,Pij.Coord,O.CentroCirc.Coord);
 	b = -2*b;
@@ -541,21 +603,43 @@ bool intersecciona(Obj O, float *R, Ponto Pij){
 	float Delta = ((b*b)-4*a*c);
 	
 
-	if(Delta>=0){ 
+	if(Delta>=0){
+		
 		for(int i=0;i<O.QtdFaces;i++){
 			Face F = O.F[i];
 			float* v1 = subVetor(4,F.P2.Coord,F.P1.Coord);
 			float* v2 = subVetor(4,F.P3.Coord,F.P1.Coord);
 			float *nF = Normal(4,v1,v2);
 			
-			if(ProdutoEscalar(4,R,nF)<0)
-				//Descartar Faces  if(somaVetor(4,nF,R);
-				printf("Percorrer Faces");
+
+			float o[4] = {0,0,0,1};
+			float *nR = subVetor(4,Pij.Coord,o);
+			float nRaio = NormaVetor(4,nR);
+			Escalar(4,nR,nRaio);
+			
+			if(ProdutoEscalar(4,nR,nF)<0){
+
+				float* V2 = subVetor(4,F.P3.Coord,F.P2.Coord);
+				float** A = MatIdentidade(4);
+
+				for(int k=0;k<3;k++){
+					A[k][0]=v2[k];
+					A[k][1]=V2[k];
+					A[k][2]=Pij.Coord[k];
+				}
+				float* lamb = Gauss(4,A,F.P3.Coord);
+				if(lamb[2]>=1){
+					float l3 = 1-(lamb[0]+lamb[1]);
+					if(lamb[0]>0 && lamb[0]<1 && lamb[1]>0 && lamb[1]<1 && l3>0 && l3<1)
+						T = lamb[2];
+				}
+			}
 
 		}
 	}
 
-	return I;
+
+	return T;
 }
 
 
@@ -593,9 +677,9 @@ float** CAMtoWord(Observador O){
 float** WtoCam(Observador O){
 	float** M = MatIdentidade(4);
 	for(int i=0;i<3;i++){
-		M[0][i]=-O.i[i];
-		M[1][i]=-O.j[i];
-		M[2][i]=-O.j[i];
+		M[0][i]=O.i[i];
+		M[1][i]=O.j[i];
+		M[2][i]=O.k[i];
 	}
 	M[0][3]= -ProdutoEscalar(4, O.i,O.coord);
 	M[1][3]= -ProdutoEscalar(4, O.j,O.coord);
@@ -632,6 +716,7 @@ Ponto** PixelsCoord(JanelaVis J){
 			Pix[i][j].Coord[0]=Xj;
 			Pix[i][j].Coord[1]=Yi;
 			Pix[i][j].Coord[2]=-J.d;
+			Pix[i][j].Coord[3]=1;
 			
 		}
 	}
@@ -645,22 +730,59 @@ int main(){
 	
 	Ponto*P; 
 	P = (Ponto *)malloc(sizeof(Ponto)*3);
-	float P1[4] = {0,0,0,1};
+	float P1[4] = {6.79,1.12,3.0,1};
 	P[0] = PreencheP(P1);
-	float P2[4] = {0,0,9,1};
+	float P2[4] = {6.52,1.0,2.0,1};
 	P[1] = PreencheP(P2);
-	float P3[4] = {11,0,-3,1};
+	float P3[4] = {6.27,2.55,2.5,1};
 	P[2] = PreencheP(P3);
-	float P4[4] = {0,6,0,1};
-	P[3] = PreencheP(P4);
-	
 	obj.Pontos=P;
-	obj.QtdPontos=4;
-	ImpObj(obj);
+	obj.QtdPontos=3;
 	CalcCirc(&obj);
-	printf("\n Centro : \n");
-	impVet(4,obj.CentroCirc.Coord);
-	printf("\n Raio= %f; \n", obj.R);
+	
+	
+	//ImpObj(obj);
+
+	float PO[4] = {7.0,1.8,2.5,1};
+	float LA[4] = {5.0,0.75,2.5,1};
+	float Avup[4] = {5.0,1.75,2.5,1};
+	Observador O;
+	O = ObsCalc(PO,LA,Avup);
+
+	float** Twc = WtoCam(O);
+	//imp(4,4,Twc);
+
+
+	Obj Oc = Transforma(obj,Twc,4);
+
+	//ImpObj(Oc);
+
+	JanelaVis J;
+	J.W=0.5;
+	J.d=0.7;
+	J.H=0.5;
+	J.M=500;
+	J.N=500;
+
+	Ponto** Pixs = PixelsCoord(J);
+
+	Face F;
+	F.P1=Oc.Pontos[0];
+	F.P2=Oc.Pontos[1];
+	F.P3=Oc.Pontos[2];
+	
+	Face *f = (Face *)malloc(sizeof(Face));
+	f[0]=F;
+	Oc.F=f;
+	Oc.QtdFaces=1;
+
+	float t = intersecciona(Oc,Pixs[250][250]);
+	if(t != -1)
+		printf("Valor t = %f",t);
+
+	//impVet(4,Pixs[250][250].Coord);
+
+
 
 
 	/*
