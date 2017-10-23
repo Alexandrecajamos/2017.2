@@ -151,6 +151,15 @@ float** TrocaColuna (int M,int N, int P, int C1, int C2, float **matA){
     Result = mult(M,N,P,matA,Id);
     return Result;
 }
+float NormaVetor(int N, float* V){
+	float norma = 0;
+	for(int i=0;i<N;i++)
+		norma+=(V[i]*V[i]);
+	norma = sqrt(norma);
+	return norma;
+}
+
+
 float* Gauss (int N, float **matA, float *vet2){
   
     float* vet1 = (float *)malloc(sizeof(float)*N);
@@ -572,10 +581,9 @@ float* Jacobi_error(int N, float** A, float *b, float e){
 			Xkb[i]= (-som+b[i])/A[i][i];
 		}
 		int cont=0;
-		for(int i=0;i<N;i++)
-			if((Xkb[i]-Xk[i])<e)
-				cont++;
-		if(cont==N)
+		float Er = NormaVetor(N,Xkb);
+
+		if(Er<e)
 			Error=false;	
 		//Se o Erro ainda não foi satisfeito, enstão copiar vetor Kb p/ K;
 		if(Error)
@@ -609,22 +617,75 @@ float** GaussSeidel_Kint(int N, float** A, float *b, int K){
 
 }
 
+float** QR_givens(int M, int N, float** Mat){
+	float** q = MatIdentidade(M);
+	float** r = Mat;
+
+
+	for(int i=(M-1); i>0;i--){
+		for(int j=(N-1);j>=i;j--){
+			float a,b,raio,c,s;
+			a=r[j][j];
+			b=r[i][j];
+			raio = sqrt(a*a + b*b);
+			c = a/raio;
+			s = -b/raio;
+			float** g = MatIdentidade(M);
+			g[j][j] = c; g[j][i]=-s;
+			g[i][j] = s; g[i][i]=c;
+			float** Gt = Transposta(M,M,g);
+			printf("I = %d, J = %d",i,j);
+			imp(M,M,g);
+
+			q = mult(M,M,M,q,Gt);
+			r = mult(M,M,N,g,r);
+
+		}		
+	}		
+	/*
+	-- usando rotação de givens
+para cada elemento ij abaixo da diagonal inferior de r, de baixo para cima
+
+	a    =  r(j,j)
+	b    =  r(i,j)
+	raio =  sqrt(a*a + b*b)
+	c    =  a/raio
+	s    = -b/rd
+
+	g = identidade(n)
+	g(j,j) = c  g(j,i) = -s
+	g(i,j) = s  g(i,i) =  c
+
+	q = q*g^t
+	r = g*r
+
+	*/
+
+	imp(M,M,q);
+	imp(M,N,r);
+
+	float** T = mult(M,M,N,q,r);
+	imp(M,N,T);
+
+	return r;
+}
 
 int main()
 {
    
-    int N = 6;
+    int M = 4;
+	int N = 2;
 
     float **matA;
 
-    //matA = (float **)malloc(sizeof(float)*N);
-    //for (int i = 0; i < N; i++)
-      //  matA[i] = (float *)malloc(sizeof(float)*(N));
+    matA = (float **)malloc(sizeof(float)*M);
+    for (int i = 0; i < M; i++)
+        matA[i] = (float *)malloc(sizeof(float)*(N));
   
-   
-	float x[4] = {-1,0,1,2};
-	float y[4] = {1,-1,2,3};
-	matA = MMQ(4,3,x,y);
+	matA = QR_givens(M,N,matA);
+	//float x[4] = {-1,0,1,2};
+	//float y[4] = {1,-1,2,3};
+	//matA = MMQ(4,3,x,y);
 
 
     //Sistemas de equações lineares:

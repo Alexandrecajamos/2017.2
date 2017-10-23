@@ -628,7 +628,7 @@ float intersecciona(Obj O, Ponto Pij){
 					A[k][2]=Pij.Coord[k];
 				}
 				float* lamb = Gauss(4,A,F.P3.Coord);
-				if(lamb[2]>=1){
+				if(lamb[2]>=0){
 					float l3 = 1-(lamb[0]+lamb[1]);
 					if(lamb[0]>0 && lamb[0]<1 && lamb[1]>0 && lamb[1]<1 && l3>0 && l3<1)
 						T = lamb[2];
@@ -700,7 +700,7 @@ struct Cenario{
 };
 
 
-Ponto** PixelsCoord(JanelaVis J){
+Ponto** PixelsCoord(JanelaVis J, Obj O){
 	float DX,DY;
 	DX=J.W/J.M;
 	DY=J.H/J.N;
@@ -717,8 +717,11 @@ Ponto** PixelsCoord(JanelaVis J){
 			Pix[i][j].Coord[1]=Yi;
 			Pix[i][j].Coord[2]=-J.d;
 			Pix[i][j].Coord[3]=1;
-			
+			float t = intersecciona(O, Pix[i][j]);
+			if(t != -1)
+				printf("|t = %f |",t);
 		}
+		printf("\n");
 	}
 	return Pix;
 }
@@ -764,7 +767,7 @@ int main(){
 	J.M=500;
 	J.N=500;
 
-	Ponto** Pixs = PixelsCoord(J);
+	
 
 	Face F;
 	F.P1=Oc.Pontos[0];
@@ -776,10 +779,14 @@ int main(){
 	Oc.F=f;
 	Oc.QtdFaces=1;
 
+
+	Ponto** Pixs = PixelsCoord(J,Oc);
+
+	
 	float t = intersecciona(Oc,Pixs[250][250]);
 	if(t != -1)
 		printf("Valor t = %f",t);
-
+		
 	//impVet(4,Pixs[250][250].Coord);
 
 
