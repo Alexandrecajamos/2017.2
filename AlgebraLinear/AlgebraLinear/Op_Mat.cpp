@@ -48,6 +48,12 @@ float** copia(int M, int N, float **matA){
     return matB;
 
 }
+float* copiaVet(int M, float* A){
+	float* v = (float *)malloc(sizeof(float)*M);
+	for(int i=0;i<M;i++)
+		v[i]=A[i];
+	return v;
+}
 void preencheAleatorio(int l, int c, float **mat, int Max, int Min)
 {
     for (int i = 0; i < l; i++)
@@ -112,22 +118,16 @@ float** MatIdentidade(int N)
     return mat;
 }
 float** Transposta (int l, int c, float** A) {
-  int i, j;
- 
   float **matA;
-
-    matA = (float **)malloc(sizeof(float)*l);
-    for (int i = 0; i < l; i++)
-        matA[i] = (float *)malloc(sizeof(float)*(c));
-  
-  
-  for(int i=0; i<l;i++){
-      for(int j=0; j<c;j++){
-          matA[i][j]=A[j][i];
-      }
+  matA = (float **)malloc(sizeof(float)*c);
+  for (int i = 0; i < c; i++){
+	matA[i] = (float *)malloc(sizeof(float)*(l));
+	for(int j=0;j<l;j++)
+		matA[i][j]=A[j][i];
   }
-  return matA;
+	return matA;
 }
+
 float** TrocaLinha(int N, int L1, int L2, float **matA){
     float** Id, **Result;
     Id = MatIdentidade(N);
@@ -159,6 +159,28 @@ float NormaVetor(int N, float* V){
 	return norma;
 }
 
+float* subVetor(int N, float* A, float* B){
+	float* v = (float *)malloc(sizeof(float)*N);
+	for(int i=0;i<N;i++)
+		v[i]=A[i]-B[i];
+	return v;
+}
+float* somaVetor(int N, float* A, float* B){
+	float* v = (float *)malloc(sizeof(float)*N);
+	for(int i=0;i<N;i++)
+		v[i]=A[i]+B[i];
+	return v;
+}
+float ProdutoEscalar(int N, float* A, float* B){
+	float soma = 0;
+	for(int i =0;i<N;i++)
+		soma+= A[i]*B[i];
+	return soma;
+}
+void Escalar(int N, float* V, float Esc){
+	for(int i=0;i<N;i++)
+		V[i] *= Esc;
+}
 
 float* Gauss (int N, float **matA, float *vet2){
   
@@ -618,48 +640,26 @@ float** GaussSeidel_Kint(int N, float** A, float *b, int K){
 }
 
 float** QR_givens(int M, int N, float** Mat){
+
 	float** q = MatIdentidade(M);
-	float** r = Mat;
+	float** r = copia(M,N, Mat);
 
+	for(int j=0;j<N;j++){
+		for(int i=j+1;i<M;i++){
+			float raio,c,s;
+			raio = sqrt(r[i][j]*r[i][j] + r[j][j]*r[j][j]);
+			s = r[i][j]/raio;
+			c = -r[j][j]/raio;
+			float** J = MatIdentidade(M);
+			J[j][j]=c; J[i][i]=c;
+			J[i][j]=-s;J[j][i]=s;
+			J = Transposta(M,M,J);
+			r = mult(M,M,N,J,r);
+			q = mult(M,M,M,J,q);
+		}
 
-	for(int i=(M-1); i>0;i--){
-		for(int j=(N-1);j>=i;j--){
-			float a,b,raio,c,s;
-			a=r[j][j];
-			b=r[i][j];
-			raio = sqrt(a*a + b*b);
-			c = a/raio;
-			s = -b/raio;
-			float** g = MatIdentidade(M);
-			g[j][j] = c; g[j][i]=-s;
-			g[i][j] = s; g[i][i]=c;
-			float** Gt = Transposta(M,M,g);
-			printf("I = %d, J = %d",i,j);
-			imp(M,M,g);
-
-			q = mult(M,M,M,q,Gt);
-			r = mult(M,M,N,g,r);
-
-		}		
-	}		
-	/*
-	-- usando rotação de givens
-para cada elemento ij abaixo da diagonal inferior de r, de baixo para cima
-
-	a    =  r(j,j)
-	b    =  r(i,j)
-	raio =  sqrt(a*a + b*b)
-	c    =  a/raio
-	s    = -b/rd
-
-	g = identidade(n)
-	g(j,j) = c  g(j,i) = -s
-	g(i,j) = s  g(i,i) =  c
-
-	q = q*g^t
-	r = g*r
-
-	*/
+	}
+	q = Transposta(M,M,q);
 
 	imp(M,M,q);
 	imp(M,N,r);
@@ -667,22 +667,60 @@ para cada elemento ij abaixo da diagonal inferior de r, de baixo para cima
 	float** T = mult(M,M,N,q,r);
 	imp(M,N,T);
 
-	return r;
+	return q;
 }
+float** Gram_Schmidt(int M, int N, float** A){
+	float** Q = Transposta(M,N,A);
+	Escalar(M,Q[0],1/NormaVetor(M,Q[0]));
+	
+	for(int i=1;i<N;i++){
+		float *w = Q[i];
+		w = subVetor(M,w,w);
+		for(int j=0;j<i;j++){
+			float* v =  copiaVet(M,Q[j]);
+			float x = ProdutoEscalar(M,Q[i],v);
+			Escalar(M,v,x);
+			w = somaVetor(M,w,v);
+		}
+		Q[i]=subVetor(M,Q[i],w);
+		Escalar(M,Q[i],1/NormaVetor(M,Q[i]));
+
+	}
+	//Q = Transposta(N,M,Q);
+	return Q;
+}
+
 
 int main()
 {
    
-    int M = 4;
-	int N = 2;
+    int M = 8;
+	int N = 3;
 
     float **matA;
 
     matA = (float **)malloc(sizeof(float)*M);
     for (int i = 0; i < M; i++)
         matA[i] = (float *)malloc(sizeof(float)*(N));
-  
-	matA = QR_givens(M,N,matA);
+	preenche(M,N,matA);
+
+	
+
+	
+	//matA = QR_givens(M,N,matA);
+	float** Q = Gram_Schmidt(M,N,matA);
+	//imp(N,M,Q);
+
+	float** r = mult(N,M,N,Q,matA);
+	imp(N,N,r);
+
+	Q = Transposta(N,M,Q);
+	float** T = mult(M,N,N,Q,r);
+	imp(M,N,T);
+
+
+
+
 	//float x[4] = {-1,0,1,2};
 	//float y[4] = {1,-1,2,3};
 	//matA = MMQ(4,3,x,y);
