@@ -49,6 +49,12 @@ float** copia(int M, int N, float **matA){
     return matB;
 
 }
+float* copiaVet(int M, float* A){
+	float* v = (float *)malloc(sizeof(float)*M);
+	for(int i=0;i<M;i++)
+		v[i]=A[i];
+	return v;
+}
 void preencheAleatorio(int l, int c, float **mat, int Max, int Min)
 {
     for (int i = 0; i < l; i++)
@@ -472,7 +478,14 @@ float** RQ2(float CosA, float* V){
 	return rot;
 }
 
+struct Material{
+	float Ar,Ag,Ab,Dr,Dg,Db,Er,Eg,Eb;
+	int m;
+};
 
+struct Cor{
+	float IR,IG,IB;
+};
 struct Ponto{
 	float Coord[4];
 };
@@ -484,6 +497,7 @@ struct Face{
 	Ponto P1;
 	Ponto P2;
 	Ponto P3;
+	Material M;
 };
 struct Obj {
 	Ponto* Pontos;
@@ -494,6 +508,13 @@ struct Obj {
 	float R;
 
 };
+struct Luz{
+	Ponto Pos;
+	Cor I;
+};
+
+
+
 Ponto PreencheP(float* V){
 	Ponto P;
 	for(int i=0; i< 4;i++)
@@ -587,7 +608,9 @@ void ImpObj(Obj O){
 		}
 	}printf("\n");
 }
-float intersecciona(Obj O, Ponto Pij){
+
+
+float intersecciona(Obj O, Ponto Pij, float* normal){
 	float T = -1;
 	///IMplementar
 	//1 - Conferir se intersecciona Esfera;
@@ -611,7 +634,7 @@ float intersecciona(Obj O, Ponto Pij){
 			float* v2 = subVetor(4,F.P3.Coord,F.P1.Coord);
 			float *nF = Normal(4,v1,v2);
 			
-
+			
 			float o[4] = {0,0,0,1};
 			float *nR = subVetor(4,Pij.Coord,o);
 			float nRaio = NormaVetor(4,nR);
@@ -630,15 +653,20 @@ float intersecciona(Obj O, Ponto Pij){
 				float* lamb = Gauss(4,A,F.P3.Coord);
 				if(lamb[2]>=0){
 					float l3 = 1-(lamb[0]+lamb[1]);
-					if(lamb[0]>0 && lamb[0]<1 && lamb[1]>0 && lamb[1]<1 && l3>0 && l3<1)
+					if(lamb[0]>0 && lamb[0]<1 && lamb[1]>0 && lamb[1]<1 && l3>0 && l3<1){
 						T = lamb[2];
+						normal[0]=nF[0];
+						normal[1]=nF[1];
+						normal[2]=nF[2];
+						normal[3]=nF[3];
+					}
 				}
 			}
 
 		}
 	}
 
-
+	
 	return T;
 }
 
@@ -717,15 +745,115 @@ Ponto** PixelsCoord(JanelaVis J, Obj O){
 			Pix[i][j].Coord[1]=Yi;
 			Pix[i][j].Coord[2]=-J.d;
 			Pix[i][j].Coord[3]=1;
-			float t = intersecciona(O, Pix[i][j]);
-			if(t != -1)
-				printf("|t = %f |",t);
+			//float t = intersecciona(O, Pix[i][j]);
+			//if(t != -1)
+				//printf("|t = %f |",t);
+
 		}
-		printf("\n");
+		//printf("\n");
 	}
 	return Pix;
 }
 
+void Ray(JanelaVis J, Obj O, Observador Ob){
+	float DX,DY;
+	DX=J.W/J.M;
+	DY=J.H/J.N;
+
+	
+	Ponto Point;
+	float C[4] = {3,3,3,1};
+	Point = PreencheP(C);
+	Cor b;
+	b.IB=1;b.IG=1;b.IR=1;
+	Luz L;
+	L.I=b;
+	L.Pos=Point;
+
+	
+	Cor P; P.IB=1;P.IG=1;P.IR=1;
+
+	Cor A; A.IB=0.2;A.IG=0.2;A.IR=0.2;
+
+	Ponto** Pix = (Ponto **)malloc(sizeof(Ponto)*J.N);
+    for (int i = 0; i < J.N; i++)
+        Pix[i] = (Ponto *)malloc(sizeof(Ponto)*J.M);
+		
+	for(int i=0;i<J.N;i++){
+		float Yi= (J.H/2)-(DY/2)-(i*DY);
+		for(int j=0;j<J.M;j++){
+			float Xj = (-J.W/2)+(DX/2)+(j*DX);
+			Pix[i][j].Coord[0]=Xj;
+			Pix[i][j].Coord[1]=Yi;
+			Pix[i][j].Coord[2]=-J.d;
+			Pix[i][j].Coord[3]=1;
+			float* n = (float *)malloc(sizeof(float)*4);
+			float t = intersecciona(O, Pix[i][j],n);
+	
+			if(t != -1 && t>0.9){
+				//printf("|t = %f |\n",t);
+				//printf("Teste Luz : Pos x=%f,y=%f;z=%f \n", L.Pos.Coord[0],  L.Pos.Coord[1],  L.Pos.Coord[2]);
+				//printf("Teste Luz : Cor IR=%f,IG=%f;IB=%f \n", L.I.IR,L.I.IG,L.I.IB);
+				//printf("Teste Material: Ra R = %f, Rd g = %f, Re b = %f", O.F[0].M.Ar, O.F[0].M.Dg, O.F[0].M.Eb);
+				//impVet(4,n);
+				
+				Escalar(4, Pix[i][j].Coord,t);
+
+				Cor Ia, Id, Ie;
+				
+				Ia.IR = O.F[0].M.Ar*A.IR;
+				Ia.IG = O.F[0].M.Ag*A.IG;
+				Ia.IB = O.F[0].M.Ab*A.IB;
+				
+				float *l = subVetor(4, L.Pos.Coord, Pix[i][j].Coord);
+				Escalar(4,l,1/NormaVetor(4,l));
+				float e = ProdutoEscalar(4,n,l);
+
+				Id.IR = (O.F[0].M.Dr*L.I.IR)*e; 
+				Id.IG = (O.F[0].M.Dg*L.I.IR)*e;
+				Id.IB = (O.F[0].M.Db*L.I.IR)*e;
+				
+				
+				float* v = subVetor(4, Ob.coord, Pix[i][j].Coord);
+				float* r = copiaVet(4,n);
+				Escalar(4,r,2*e);
+				r = subVetor(4,r,l);
+				float e2 = ProdutoEscalar(4,v,r);
+				e2 = pow(e2, O.F[0].M.m);
+
+				Ie.IR = (O.F[0].M.Er*L.I.IR)*e2;
+				Ie.IG = (O.F[0].M.Eg*L.I.IG)*e2;
+				Ie.IB = (O.F[0].M.Eb*L.I.IB)*e2;
+				
+
+
+				P.IR = Ia.IR + Id.IR + Ie.IR;
+				P.IG = Ia.IG + Id.IG + Ie.IG;
+				P.IB = Ia.IB + Id.IB + Ie.IB;
+
+				if(P.IR>1)
+					P.IR=1;
+				if(P.IG>1)
+					P.IG=1;
+				if(P.IB>1)
+					P.IB=1;
+			
+			}else{
+				P.IR = 0.1;
+				P.IG = 0.1;
+				P.IB = 0.1;
+			}
+
+		
+
+			printf("Pixel[%d][%d] = R: %f, G: %f, B:%f \n",i,j, P.IR,P.IG,P.IB);
+
+
+		}
+		//printf("\n");
+	}
+	
+}
 
 int main(){
 
@@ -751,7 +879,7 @@ int main(){
 	float Avup[4] = {5.0,1.75,2.5,1};
 	Observador O;
 	O = ObsCalc(PO,LA,Avup);
-
+	
 	float** Twc = WtoCam(O);
 	//imp(4,4,Twc);
 
@@ -764,30 +892,46 @@ int main(){
 	J.W=0.5;
 	J.d=0.7;
 	J.H=0.5;
-	J.M=500;
-	J.N=500;
+	J.M=200;
+	J.N=200;
 
-	
+
+	Material M;
+	M.Ar = 0.2;
+	M.Ag = 0;
+	M.Ab = 0;
+	M.Dr = 0;
+	M.Dg = 1;
+	M.Db = 0;
+	M.Er = 0;
+	M.Eg = 1;
+	M.Eb = 0;
+	M.m = 2;
+
 
 	Face F;
 	F.P1=Oc.Pontos[0];
 	F.P2=Oc.Pontos[1];
 	F.P3=Oc.Pontos[2];
-	
+	F.M  = M;
+
+
 	Face *f = (Face *)malloc(sizeof(Face));
 	f[0]=F;
 	Oc.F=f;
 	Oc.QtdFaces=1;
 
+	Ray(J,Oc,O);
 
-	Ponto** Pixs = PixelsCoord(J,Oc);
 
+	//Ponto** Pixs = PixelsCoord(J,Oc);
+
+	//float* n = (float *)malloc(sizeof(float)*4);
+	//float t = intersecciona(Oc,Pixs[250][250],n);
+	//if(t != -1)
+		//printf("Valor t = %f",t);
 	
-	float t = intersecciona(Oc,Pixs[250][250]);
-	if(t != -1)
-		printf("Valor t = %f",t);
-		
-	//impVet(4,Pixs[250][250].Coord);
+	 //impVet(4,n);
 
 
 
