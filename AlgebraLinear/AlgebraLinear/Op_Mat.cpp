@@ -127,7 +127,16 @@ float** Transposta (int l, int c, float** A) {
   }
 	return matA;
 }
-
+float** VetorColuna(int N, float* V){
+	float** v;
+	v = (float**)malloc(sizeof(float)*(N));
+	for (int i = 0; i < N; i++){
+        v[i] = (float *)malloc(sizeof(float));
+		v[i][0] = V[i];
+		
+	}
+	return v;
+}
 float** TrocaLinha(int N, int L1, int L2, float **matA){
     float** Id, **Result;
     Id = MatIdentidade(N);
@@ -674,13 +683,13 @@ float** Gram_Schmidt(int M, int N, float** A){
 	Escalar(M,Q[0],1/NormaVetor(M,Q[0]));
 	
 	for(int i=1;i<N;i++){
-		float *w = Q[i];
+		float *w = copiaVet(M,Q[i]);
 		w = subVetor(M,w,w);
 		for(int j=0;j<i;j++){
 			float* v =  copiaVet(M,Q[j]);
-			float x = ProdutoEscalar(M,Q[i],v);
+			float x = ProdutoEscalar(M,v,Q[i]);
 			Escalar(M,v,x);
-			w = somaVetor(M,w,v);
+			w = somaVetor(M,v,w);
 		}
 		Q[i]=subVetor(M,Q[i],w);
 		Escalar(M,Q[i],1/NormaVetor(M,Q[i]));
@@ -690,12 +699,81 @@ float** Gram_Schmidt(int M, int N, float** A){
 	return Q;
 }
 
+float* SEL_QR(int M, int N, float** A, float* b){
+	float** Q = Gram_Schmidt(M,N,A); // Q tranposta 
+	//imp(N,M,Q);
+	float** r = mult(N,M,N,Q,A);
+	float** B = mult(N,M,1,Q,VetorColuna(M,b));
+	float* v = (float *)malloc(sizeof(float)*N);
+	//imp(N,N,r);
+	//imp(N,1,B);
+
+
+	for(int i=(N-1);i>0;i--){
+		float soma = 0;
+		for(int k = i+1; k < N; k++)
+			soma += r[i][k]*B[k][0];
+		B[i][0] = (B[i][0]-soma)/r[i][i]; 
+	}
+	//imp(N,1,B);
+
+	for(int i=0;i<N;i++)
+		v[i]=B[i][0];
+
+	float** T = mult(M,N,N,Transposta(N,M,Q),r);
+	//imp(M,N,T);
+
+	return v;
+}
+
+void Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l){
+	float **q,**qt,**y,**Lamb;
+	float l1=0,l2=0;
+	qt = (float **)malloc(sizeof(float));
+	qt[0] = copiaVet(M,v);
+	Escalar(M,qt[0],1/NormaVetor(M,qt[0]));
+	q=Transposta(1,M,qt);
+	y = mult(M,M,1,A,q);
+	Lamb = mult(1,M,1,qt,y);
+
+	int k=0;
+	float error=5;
+	while(k<500 && error>e){
+	
+		l1 = Lamb[0][0];
+		qt = copia(M,1,y);
+		qt= Transposta(M,1,qt);
+		Escalar(M,qt[0],1/NormaVetor(M,qt[0]));
+		q = Transposta(1,M,qt);
+		y = mult(M,M,1,A,q);
+		Lamb = mult(1,M,1,qt,y);
+		l2 = Lamb[0][0];
+		error = abs((l2-l1)/l2);
+		k++;
+
+		/*
+		printf("Q");
+		imp(M,1,q);
+		printf("Y");
+		imp(M,1,y);
+		printf("Qt");
+		imp(1,M,qt);
+
+		printf("Valor k =%d Teste autoValor = %f, error = %f\n",k,l2,error);
+		*/
+	}
+	l=l2;
+	//printf("valor k =%d Teste autoValor = %f",k,l2);
+	for(int i=0;i<M;i++)
+		v[i]=y[i][0];
+	
+}
 
 int main()
 {
    
-    int M = 8;
-	int N = 3;
+    int M = 4;
+	int N = 4;
 
     float **matA;
 
@@ -704,9 +782,26 @@ int main()
         matA[i] = (float *)malloc(sizeof(float)*(N));
 	preenche(M,N,matA);
 
-	
 
-	
+	float e = 0.0003;
+	float* v = (float*)malloc(sizeof(float)*M);
+	preencheVet(M,v);
+	float l=0;
+	Auto_Valor_Vetor(M, matA, e, v,l);
+	printf("\nAuto Vetor\n");
+	impVet(M,v);
+	printf("\nAutoValor %f\n",l);
+
+
+
+	/*
+	float* b =(float *)malloc(sizeof(float)*M);
+	preencheVet(M,b);
+	float* x = SEL_QR(M,N,matA,b);
+	impVet(N,x);
+	*/
+
+	/*
 	//matA = QR_givens(M,N,matA);
 	float** Q = Gram_Schmidt(M,N,matA);
 	//imp(N,M,Q);
@@ -714,11 +809,13 @@ int main()
 	float** r = mult(N,M,N,Q,matA);
 	imp(N,N,r);
 
+
+
 	Q = Transposta(N,M,Q);
 	float** T = mult(M,N,N,Q,r);
 	imp(M,N,T);
 
-
+	*/
 
 
 	//float x[4] = {-1,0,1,2};

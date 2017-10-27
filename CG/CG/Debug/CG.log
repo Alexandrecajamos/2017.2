@@ -1,4 +1,4 @@
-﻿Build started 26/10/2017 19:43:10.
+﻿Build started 26/10/2017 20:44:43.
      1>Project "C:\Users\alexa\Projetos\2017.2\CG\CG\CG.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\CG.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -37,6 +37,7 @@
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\alexa\Projetos\2017.2\CG\Debug\CG.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\CG.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\alexa\Projetos\2017.2\CG\Debug\CG.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\alexa\Projetos\2017.2\CG\Debug\CG.lib" /MACHINE:X86 Debug\CG.exe.embed.manifest.res
          Debug\Transformacoes.obj
+         LINK : C:\Users\alexa\Projetos\2017.2\CG\Debug\CG.exe not found or not built by the last incremental link; performing full link
        Manifest:
          C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"Debug\CG.exe.embed.manifest" /manifest Debug\CG.exe.intermediate.manifest
          All outputs are up-to-date.
@@ -50,4 +51,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.51
+Time Elapsed 00:00:04.70
