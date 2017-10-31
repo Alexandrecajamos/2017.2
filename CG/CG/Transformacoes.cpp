@@ -638,7 +638,7 @@ float intersecciona(Obj O, Ponto Pij, float* normal){
 			float o[4] = {0,0,0,1};
 			float *nR = subVetor(4,Pij.Coord,o);
 			float nRaio = NormaVetor(4,nR);
-			Escalar(4,nR,nRaio);
+			Escalar(4,nR,1/nRaio);
 			
 			if(ProdutoEscalar(4,nR,nF)<0){
 
@@ -879,9 +879,12 @@ int main(){
 	float Avup[4] = {5.0,1.75,2.5,1};
 	Observador O;
 	O = ObsCalc(PO,LA,Avup);
-	
+	//impVet(4,O.k);
 	float** Twc = WtoCam(O);
-	//imp(4,4,Twc);
+	float** Tcw = CAMtoWord(O);
+	float** conf = mult(4,4,4,Twc,Tcw);
+
+	imp(4,4,Twc);
 
 
 	Obj Oc = Transforma(obj,Twc,4);
@@ -892,8 +895,8 @@ int main(){
 	J.W=0.5;
 	J.d=0.7;
 	J.H=0.5;
-	J.M=200;
-	J.N=200;
+	J.M=500;
+	J.N=500;
 
 
 	Material M;
@@ -920,16 +923,36 @@ int main(){
 	f[0]=F;
 	Oc.F=f;
 	Oc.QtdFaces=1;
+	ImpObj(Oc);
 
-	Ray(J,Oc,O);
+	float* a = subVetor(4,F.P2.Coord,F.P1.Coord);
+	float* b = subVetor(4,F.P3.Coord,F.P1.Coord);
+	printf("\n");
+	impVet(4,a);
+	printf("\n");
+	impVet(4,b);
+	float* n = Normal(4,a,b);
+	printf("\n");
+	impVet(4,n);
+	printf("\n");printf("\n");
 
 
-	//Ponto** Pixs = PixelsCoord(J,Oc);
+	//Ray(J,Oc,O);
 
-	//float* n = (float *)malloc(sizeof(float)*4);
-	//float t = intersecciona(Oc,Pixs[250][250],n);
-	//if(t != -1)
-		//printf("Valor t = %f",t);
+
+	Ponto** Pixs = PixelsCoord(J,Oc);
+	impVet(4,Pixs[250][250].Coord);
+	
+	CalcCirc(&Oc);
+	printf("Circulo, raio = %f, centro: \n", Oc.R);
+	
+	impVet(4,Oc.CentroCirc.Coord);
+
+
+	float* nf = (float *)malloc(sizeof(float)*4);
+	float t = intersecciona(Oc,Pixs[250][250],n);
+	if(t != -1)
+		printf("\n\nValor t = %f",t);
 	
 	 //impVet(4,n);
 

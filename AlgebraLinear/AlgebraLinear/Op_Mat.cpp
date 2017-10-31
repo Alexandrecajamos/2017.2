@@ -167,6 +167,15 @@ float NormaVetor(int N, float* V){
 	norma = sqrt(norma);
 	return norma;
 }
+float** sub(int M, int N, float** A, float** B){
+	float** C = (float **)malloc(sizeof(float)*M);
+    for (int i = 0; i < M; i++){
+        C[i] = (float *)malloc(sizeof(float)*(N));
+		for(int j=0; j<N;j++)
+			C[i][j]=A[i][j]-B[i][j];
+	}
+	return C;
+}
 
 float* subVetor(int N, float* A, float* B){
 	float* v = (float *)malloc(sizeof(float)*N);
@@ -726,7 +735,7 @@ float* SEL_QR(int M, int N, float** A, float* b){
 	return v;
 }
 
-void Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l){
+void Maior_Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l){
 	float **q,**qt,**y,**Lamb;
 	float l1=0,l2=0;
 	qt = (float **)malloc(sizeof(float));
@@ -768,12 +777,72 @@ void Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l){
 		v[i]=y[i][0];
 	
 }
+void Menor_Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l){
+	float **q,**qt,**y,**Lamb;
+	float* temp;
+	float l1=0,l2=0;
+	qt = (float **)malloc(sizeof(float));
+	qt[0] = copiaVet(M,v);
+	Escalar(M,qt[0],1/NormaVetor(M,qt[0]));
+	q=Transposta(1,M,qt);
+	temp=SELDecLU(M,A,qt[0]);
+	y = VetorColuna(M,temp);
+	Lamb = mult(1,M,1,qt,y);
+
+	int k=0;
+	float error=5;
+	while(k<500 && error>e){
+	
+		l1 = Lamb[0][0];
+		qt = copia(M,1,y);
+		qt= Transposta(M,1,qt);
+		Escalar(M,qt[0],1/NormaVetor(M,qt[0]));
+		q = Transposta(1,M,qt);
+		temp=SELDecLU(M,A,qt[0]);
+		y = VetorColuna(M,temp);;
+		Lamb = mult(1,M,1,qt,y);
+		l2 = Lamb[0][0];
+		error = abs((l2-l1)/l2);
+		k++;
+
+		/*
+		printf("Q");
+		imp(M,1,q);
+		printf("Y");
+		imp(M,1,y);
+		printf("Qt");
+		imp(1,M,qt);
+
+		printf("Valor k =%d Teste autoValor = %f, error = %f\n",k,l2,error);
+		*/
+	}
+	l=1/l2;
+	//printf("valor k =%d Teste autoValor = %f",k,l2);
+	for(int i=0;i<M;i++)
+		v[i]=y[i][0];
+	
+}
+void Desloc_Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l, float x){
+	float** MI = MatIdentidade(M);
+	float* lb = (float*)malloc(sizeof(float)*M);
+	for(int i=0;i<M;i++){
+		MI[i][i] = x;
+		lb[i] = v[i]-x;
+	}
+	float Lb =0;
+	float** Ab = sub(M,M,A,MI);
+	Menor_Auto_Valor_Vetor(M,Ab,e,lb,Lb);
+	for(int i=0;i<M;i++){
+		v[i]=lb[i]+x;
+	}
+	l=Lb+x;
+}
 
 int main()
 {
    
-    int M = 4;
-	int N = 4;
+    int M = 3;
+	int N = 3;
 
     float **matA;
 
@@ -783,16 +852,24 @@ int main()
 	preenche(M,N,matA);
 
 
-	float e = 0.0003;
+	float e = 0.0001;
 	float* v = (float*)malloc(sizeof(float)*M);
-	preencheVet(M,v);
+	for(int i=0;i<M;i++)
+		v[i]=1;
 	float l=0;
-	Auto_Valor_Vetor(M, matA, e, v,l);
+	//Maior_Auto_Valor_Vetor(M, matA, e, v,l);
+	Menor_Auto_Valor_Vetor(M,matA,e,v,l);
+	//Desloc_Auto_Valor_Vetor(M,matA,e,v,l,1.5);
+	
 	printf("\nAuto Vetor\n");
 	impVet(M,v);
 	printf("\nAutoValor %f\n",l);
 
+	float** Valida = mult(3,3,1,matA,VetorColuna(3,v));;
 
+	printf("\n Valida: \n ");
+	imp(3,1,Valida);
+	
 
 	/*
 	float* b =(float *)malloc(sizeof(float)*M);
