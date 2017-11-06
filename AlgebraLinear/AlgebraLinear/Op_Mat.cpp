@@ -735,10 +735,11 @@ float* SEL_QR(int M, int N, float** A, float* b){
 	return v;
 }
 
-void Maior_Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l){
+void Maior_Auto_Valor_Vetor(int Int, int M, float** A, float e, float*v, float &l){
 	float **q,**qt,**y,**Lamb;
 	float l1=0,l2=0;
 	qt = (float **)malloc(sizeof(float));
+	
 	qt[0] = copiaVet(M,v);
 	Escalar(M,qt[0],1/NormaVetor(M,qt[0]));
 	q=Transposta(1,M,qt);
@@ -747,11 +748,10 @@ void Maior_Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l){
 
 	int k=0;
 	float error=5;
-	while(k<500 && error>e){
+	while(k!= Int && error>e){
 	
 		l1 = Lamb[0][0];
-		qt = copia(M,1,y);
-		qt= Transposta(M,1,qt);
+		qt= Transposta(M,1,y);
 		Escalar(M,qt[0],1/NormaVetor(M,qt[0]));
 		q = Transposta(1,M,qt);
 		y = mult(M,M,1,A,q);
@@ -777,72 +777,58 @@ void Maior_Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l){
 		v[i]=y[i][0];
 	
 }
-void Menor_Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l){
+void Menor_Auto_Valor_Vetor(int Int, int M, float** A, float e, float*v, float &l){
 	float **q,**qt,**y,**Lamb;
 	float* temp;
 	float l1=0,l2=0;
 	qt = (float **)malloc(sizeof(float));
+	
 	qt[0] = copiaVet(M,v);
 	Escalar(M,qt[0],1/NormaVetor(M,qt[0]));
-	q=Transposta(1,M,qt);
-	temp=SELDecLU(M,A,qt[0]);
+	
+	temp=Gauss(M,A,qt[0]);
 	y = VetorColuna(M,temp);
 	Lamb = mult(1,M,1,qt,y);
 
 	int k=0;
 	float error=5;
-	while(k<500 && error>e){
+	while(k!=Int && error>e){
 	
 		l1 = Lamb[0][0];
-		qt = copia(M,1,y);
-		qt= Transposta(M,1,qt);
+		qt = Transposta(M,1,y);
 		Escalar(M,qt[0],1/NormaVetor(M,qt[0]));
-		q = Transposta(1,M,qt);
-		temp=SELDecLU(M,A,qt[0]);
-		y = VetorColuna(M,temp);;
+		temp = Gauss(M,A,qt[0]);
+		y = VetorColuna(M,temp);
 		Lamb = mult(1,M,1,qt,y);
 		l2 = Lamb[0][0];
 		error = abs((l2-l1)/l2);
 		k++;
-
-		/*
-		printf("Q");
-		imp(M,1,q);
-		printf("Y");
-		imp(M,1,y);
-		printf("Qt");
-		imp(1,M,qt);
-
-		printf("Valor k =%d Teste autoValor = %f, error = %f\n",k,l2,error);
-		*/
+		printf("Valor k =%d Teste autoValor = %f, error = %f\n",k,(1/l2),error);
+		
 	}
 	l=1/l2;
-	//printf("valor k =%d Teste autoValor = %f",k,l2);
+	
 	for(int i=0;i<M;i++)
 		v[i]=y[i][0];
 	
 }
-void Desloc_Auto_Valor_Vetor(int M, float** A, float e, float*v, float &l, float x){
+void Desloc_Auto_Valor_Vetor(int Int, int M, float** A, float e, float*v, float &l, float x){
 	float** MI = MatIdentidade(M);
-	float* lb = (float*)malloc(sizeof(float)*M);
 	for(int i=0;i<M;i++){
 		MI[i][i] = x;
-		lb[i] = v[i]-x;
 	}
 	float Lb =0;
 	float** Ab = sub(M,M,A,MI);
-	Menor_Auto_Valor_Vetor(M,Ab,e,lb,Lb);
-	for(int i=0;i<M;i++){
-		v[i]=lb[i]+x;
-	}
+	//imp(M,M,Ab);
+	Menor_Auto_Valor_Vetor(Int,M,Ab,e,v,Lb);
 	l=Lb+x;
 }
 
 int main()
 {
    
-    int M = 3;
-	int N = 3;
+    int M = 4;
+	int N = 4;
 
     float **matA;
 
@@ -852,24 +838,28 @@ int main()
 	preenche(M,N,matA);
 
 
-	float e = 0.0001;
+	float e = 0.000001;
 	float* v = (float*)malloc(sizeof(float)*M);
 	for(int i=0;i<M;i++)
 		v[i]=1;
+	//v[2]=0;v[3]=0;
 	float l=0;
-	//Maior_Auto_Valor_Vetor(M, matA, e, v,l);
-	Menor_Auto_Valor_Vetor(M,matA,e,v,l);
-	//Desloc_Auto_Valor_Vetor(M,matA,e,v,l,1.5);
 	
+	//v = Gauss(M,matA,v);
+	//impVet(M,v);
+	
+	//Maior_Auto_Valor_Vetor(500,M, matA, e, v,l);
+	Menor_Auto_Valor_Vetor(500,M,matA,e,v,l);
+	//Desloc_Auto_Valor_Vetor(500,M,matA,e,v,l,3);
+
 	printf("\nAuto Vetor\n");
 	impVet(M,v);
 	printf("\nAutoValor %f\n",l);
 
-	float** Valida = mult(3,3,1,matA,VetorColuna(3,v));;
+	float** Valida = mult(M,M,1,matA,VetorColuna(M,v));;
 
 	printf("\n Valida: \n ");
-	imp(3,1,Valida);
-	
+	imp(M,1,Valida);
 
 	/*
 	float* b =(float *)malloc(sizeof(float)*M);

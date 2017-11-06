@@ -468,12 +468,15 @@ float** RQ2(float CosA, float* V){
 	}
 	q1[3] = CA;
 	q2[3] = CA;
-	//impVet(4,q1);
-	//impVet(4,q2);
+	printf("Quaternio e Conjugado\n\n\n");
+	impVet(4,q1);
+	printf("\n");
+	impVet(4,q2);
+	printf("\n Matrizes L e R \n");
 	Lq1 = Mat_Left_Quat(q1);
-	//imp(4,4,Lq1);
+	imp(4,4,Lq1);
 	Rq2 = Mat_Right_Quat(q2);
-	//imp(4,4,Rq2);
+	imp(4,4,Rq2);
 	rot = mult(4,4,4,Lq1,Rq2);
 	return rot;
 }
@@ -715,19 +718,15 @@ float** WtoCam(Observador O){
 
 	return M;
 }
-
 struct JanelaVis{
 	float d,W,H;
 	int N,M;
 };
-
 struct Cenario{
 	Observador O;
 	Obj *Objetos;
 	int QtdObjetos;
 };
-
-
 Ponto** PixelsCoord(JanelaVis J, Obj O){
 	float DX,DY;
 	DX=J.W/J.M;
@@ -754,7 +753,6 @@ Ponto** PixelsCoord(JanelaVis J, Obj O){
 	}
 	return Pix;
 }
-
 void Ray(JanelaVis J, Obj O, Observador Ob){
 	float DX,DY;
 	DX=J.W/J.M;
@@ -856,7 +854,7 @@ void Ray(JanelaVis J, Obj O, Observador Ob){
 }
 
 int main(){
-
+	/*
 	Obj obj; 
 	
 	Ponto*P; 
@@ -956,7 +954,7 @@ int main(){
 	
 	 //impVet(4,n);
 
-
+	*/
 
 
 	/*
@@ -986,7 +984,7 @@ int main(){
 
 	*/
 
-	/*
+	
 	Obj obj, objT; 
 	
 	Ponto*P; 
@@ -1008,9 +1006,10 @@ int main(){
 	ex = r50/P3[0];ey = r50/P4[1];ez = r50/P2[2];
 	float ve[4] = {ex,ey,ez,1};
 	float **E = Escala(4,ve);
-	//imp(4,4,E);
+	imp(4,4,E);
 	objT = Transforma(obj,E,4);
 	ImpObj(objT);
+
 
 	float* t1 = subVetor(4,P1,objT.Pontos[2].Coord);
 	float **T1 = Translacao(3,t1);
@@ -1018,16 +1017,8 @@ int main(){
 	float* t2 = subVetor(4,P3B,P1);
 	float **T2 = Translacao(3,t2);
 	
-
-	float* a = subVetor(4,objT.Pontos[2].Coord,objT.Pontos[1].Coord);
-	float* b = subVetor(4,P3B,objT.Pontos[2].Coord);
-	float na = NormaVetor(4,a);
-	float nb = NormaVetor(4,b);
-	Escalar(4,a,1/na);
-	Escalar(4,b,1/nb);
-	float teta = ProdutoEscalar(4,a,b);
-	printf("O = %f", teta);
-	float **Rz = Rotacao2z(3,2, teta);
+	objT = Transforma(objT,T1,4);
+	ImpObj(objT);
 
 	float *v = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
 	//impVet(4,v);
@@ -1042,24 +1033,42 @@ int main(){
 	//printf("Cos O = %f",O);
 	float** Q = RQ2(O,v);
 	
+	objT = Transforma(objT,Q,4);
+	ImpObj(objT);
+	
+	
+	float* a = subVetor(4,objT.Pontos[1].Coord,objT.Pontos[2].Coord);
+	float* b = subVetor(4,P3B,objT.Pontos[2].Coord);
+	float na = NormaVetor(4,a);
+	float nb = NormaVetor(4,b);
+	Escalar(4,a,1/na);
+	Escalar(4,b,1/nb);
+	float teta = ProdutoEscalar(4,a,b);
+	printf("O = %f", teta);
+	float **Rz = Rotacao2z(3,2, teta);
+	
+	objT = Transforma(objT,Rz,4);
+	ImpObj(objT);
+	
 
-	float** T = mult(4,4,4,T2,Rz);
-	T= mult(4,4,4,T,Q);
-	T = mult(4,4,4,T,T1);
+	//float** T = mult(4,4,4,T2,Rz);
+	//T= mult(4,4,4,T,Q);
+	//T = mult(4,4,4,T,T1);
 	
 	
-	objT = Transforma(objT,T,4);
+	objT = Transforma(objT,T2,4);
+	
 	ImpObj(objT);
 
-	//printf("\n Matrizes em ordem T1, RQ, Rz, T2 \n");
-	//imp(4,4,T1);
-	//imp(4,4,Q);
-	//imp(4,4,Rz);
-	//imp(4,4,T2);
+	printf("\n Matrizes em ordem T1, RQ, Rz, T2 \n");
+	imp(4,4,T1);
+	imp(4,4,Q);
+	imp(4,4,Rz);
+	imp(4,4,T2);
 	
 
 	//Questão 3 
-
+	
 	float* e1 = subVetor(4, objT.Pontos[1].Coord,objT.Pontos[0].Coord); // Vetor P1P2
 	float* e2 = subVetor(4, objT.Pontos[3].Coord,objT.Pontos[0].Coord); // Vetor P1P4
 	impVet(4,e1);
@@ -1070,18 +1079,20 @@ int main(){
 	t1 = subVetor(4, P1,objT.Pontos[0].Coord);// Vetor OP1
 	T1 = Translacao(3,t1);
 	T2 = Translacao(3,objT.Pontos[0].Coord);
-	T = mult(4,4,4,T2,Es);
+	float ** T = mult(4,4,4,T2,Es);
 	T = mult(4,4,4,T,T1);
 	objT = Transforma(objT,T,4);
+	
 	ImpObj(objT);
 
 	imp(4,4,T1);
 	imp(4,4,Es);
 	imp(4,4,T2);
+	imp(4,4,T);
 	//
 	
 	
-	*/
+	
 	system("pause");
     return 0;
 }
