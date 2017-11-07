@@ -431,6 +431,7 @@ float** DecLU2(int N, float **A){
     }
     return A;
 }
+
 float* SELDecLU(int N, float **matA, float *vet1){
 
     int i,j;
@@ -467,6 +468,46 @@ float* SELDecLU(int N, float **matA, float *vet1){
 
     return vet1;
 }
+
+float* Solve_LU(int N, float **LU, float *vet2){
+	
+    int i,j;
+    float alfa;
+    float** L;
+    float** U;
+	U = copia(N,N,LU);
+    L = MatIdentidade(N);
+	float *vet1 = (float*)malloc(sizeof(float)*N);
+	
+    for(i=1;i<N;i++){
+		vet1[i-1] = vet2[i-1];
+		for(j=0;j<i;j++){
+            L[i][j]=U[i][j];
+            U[i][j]=0;
+        }
+	}vet1[N-1]=vet2[N-2];
+    //RetroSubstituição com L para encontrar vetor intermediário/
+   
+    for(i = 1; i < N; i++){
+        float soma = 0;
+        for(int k = 0; k < i; k++)
+            soma += L[i][k] * vet1[k];
+        vet1[i] = (vet1[i]-soma);   
+               
+    }
+    //RetroSubstituição com U para encontrar vetor de Incognitas
+   
+    for(i = (N-1); i >=0; i--){
+        float soma = 0;
+        for(int k = i+1; k < N; k++)
+            soma += U[i][k] * vet1[k];
+        vet1[i] = (vet1[i]-soma)/U[i][i];
+      
+    }
+
+    return vet1;
+}
+
 float** Cholesky(int N, float** A){
     float** S = MatIdentidade(N);
     for(int j = 0; j<N; j++){
@@ -778,32 +819,37 @@ void Maior_Auto_Valor_Vetor(int Int, int M, float** A, float e, float*v, float &
 	
 }
 void Menor_Auto_Valor_Vetor(int Int, int M, float** A, float e, float*v, float &l){
-	float **q,**qt,**y,**Lamb;
+
+	float **qt,**y,**Lamb;
 	float* temp;
 	float l1=0,l2=0;
+	float** LU = DecLU(M,A);
+
 	qt = (float **)malloc(sizeof(float));
 	
 	qt[0] = copiaVet(M,v);
-	Escalar(M,qt[0],1/NormaVetor(M,qt[0]));
+	float normaQ = NormaVetor(M,qt[0]);
+	Escalar(M,qt[0],(1/normaQ));
 	
-	temp=Gauss(M,A,qt[0]);
+	temp= Solve_LU(M,LU,qt[0]); //Gauss(M,A,qt[0]);
 	y = VetorColuna(M,temp);
 	Lamb = mult(1,M,1,qt,y);
 
 	int k=0;
-	float error=5;
+	float error=1;
 	while(k!=Int && error>e){
 	
 		l1 = Lamb[0][0];
 		qt = Transposta(M,1,y);
-		Escalar(M,qt[0],1/NormaVetor(M,qt[0]));
-		temp = Gauss(M,A,qt[0]);
+		normaQ = NormaVetor(M,qt[0]);
+		Escalar(M,qt[0],(1/normaQ));
+		temp = Solve_LU(M,LU,qt[0]);//•Gauss(M,A,qt[0]);
 		y = VetorColuna(M,temp);
 		Lamb = mult(1,M,1,qt,y);
 		l2 = Lamb[0][0];
 		error = abs((l2-l1)/l2);
 		k++;
-		printf("Valor k =%d Teste autoValor = %f, error = %f\n",k,(1/l2),error);
+		//printf("Valor k =%d Teste autoValor = %f, error = %f\n",k,1/l2,error);
 		
 	}
 	l=1/l2;
@@ -842,15 +888,14 @@ int main()
 	float* v = (float*)malloc(sizeof(float)*M);
 	for(int i=0;i<M;i++)
 		v[i]=1;
-	//v[2]=0;v[3]=0;
 	float l=0;
 	
 	//v = Gauss(M,matA,v);
 	//impVet(M,v);
 	
 	//Maior_Auto_Valor_Vetor(500,M, matA, e, v,l);
-	Menor_Auto_Valor_Vetor(500,M,matA,e,v,l);
-	//Desloc_Auto_Valor_Vetor(500,M,matA,e,v,l,3);
+	//Menor_Auto_Valor_Vetor(10000,M,matA,e,v,l);
+	//Desloc_Auto_Valor_Vetor(500,M,matA,e,v,l,3.6);
 
 	printf("\nAuto Vetor\n");
 	impVet(M,v);
