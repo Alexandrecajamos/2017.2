@@ -1,4 +1,4 @@
-﻿Build started 06/11/2017 11:27:37.
+﻿Build started 07/11/2017 14:14:41.
      1>Project "C:\Users\alexa\Projetos\2017.2\CG\CG\CG.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\CG.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -25,7 +25,6 @@
      1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(841): warning C4305: '=' : truncation from 'double' to 'float'
      1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(842): warning C4305: '=' : truncation from 'double' to 'float'
      1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(1004): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(1027): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
        ManifestResourceCompile:
          All outputs are up-to-date.
        Link:
@@ -44,4 +43,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.03
+Time Elapsed 00:00:00.56

@@ -1022,16 +1022,19 @@ int main(){
 
 	float *v = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
 	//impVet(4,v);
-	float *M = somaVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
-	Escalar(4,M,0.5);
-	float c45 = sqrt(2.0)/2;
-	float v1[4] = {c45,c45,0,0};
-	float *v2 = subVetor(4,objT.Pontos[1].Coord,M);
-	float nv2 = NormaVetor(4,v2);
-	Escalar(4,v2,1/nv2);
+	//float *M = somaVetor(4,objT.Pontos[3].Coord,objT.Pontos[2].Coord);
+	//Escalar(4,M,0.5);
+	//float c45 = sqrt(2.0)/2;
+	float v1[4] = {0,0,-1,0};//{c45,c45,0,0};
+	//float *v2 = subVetor(4,objT.Pontos[1].Coord,M);
+	//float nv2 = NormaVetor(4,v2);
+	//Escalar(4,v2,1/nv2);
+	float *F1 = subVetor(4,objT.Pontos[2].Coord,objT.Pontos[1].Coord);
+	float *F2 = subVetor(4,objT.Pontos[3].Coord,objT.Pontos[1].Coord);
+	float* v2 = Normal(4,F1,F2);
 	float O = ProdutoEscalar(4, v1,v2);
 	//printf("Cos O = %f",O);
-	float** Q = RQ2(O,v);
+	float** Q = RQ2(              O,v);
 	
 	objT = Transforma(objT,Q,4);
 	ImpObj(objT);

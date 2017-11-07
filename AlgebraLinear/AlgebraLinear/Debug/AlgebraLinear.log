@@ -1,4 +1,4 @@
-﻿Build started 07/11/2017 01:02:38.
+﻿Build started 07/11/2017 14:30:37.
      1>Project "C:\Users\alexa\Projetos\2017.2\AlgebraLinear\AlgebraLinear\AlgebraLinear.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\AlgebraLinear.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -14,8 +14,8 @@
      1>c:\users\alexa\projetos\2017.2\algebralinear\algebralinear\op_mat.cpp(475): warning C4101: 'alfa' : unreferenced local variable
      1>c:\users\alexa\projetos\2017.2\algebralinear\algebralinear\op_mat.cpp(590): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
      1>c:\users\alexa\projetos\2017.2\algebralinear\algebralinear\op_mat.cpp(592): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\algebralinear\algebralinear\op_mat.cpp(887): warning C4305: 'initializing' : truncation from 'double' to 'float'
-     1>c:\users\alexa\projetos\2017.2\algebralinear\algebralinear\op_mat.cpp(899): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\alexa\projetos\2017.2\algebralinear\algebralinear\op_mat.cpp(891): warning C4305: 'initializing' : truncation from 'double' to 'float'
+     1>c:\users\alexa\projetos\2017.2\algebralinear\algebralinear\op_mat.cpp(896): warning C4305: 'argument' : truncation from 'double' to 'float'
        ManifestResourceCompile:
          All outputs are up-to-date.
        Link:
@@ -34,4 +34,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.77
+Time Elapsed 00:00:00.53

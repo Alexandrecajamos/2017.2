@@ -874,7 +874,7 @@ int main()
 {
    
     int M = 4;
-	int N = 4;
+	int N = M;
 
     float **matA;
 
@@ -883,19 +883,17 @@ int main()
         matA[i] = (float *)malloc(sizeof(float)*(N));
 	preenche(M,N,matA);
 
-
-	float e = 0.000001;
 	float* v = (float*)malloc(sizeof(float)*M);
 	for(int i=0;i<M;i++)
 		v[i]=1;
 	float l=0;
 	
-	//v = Gauss(M,matA,v);
-	//impVet(M,v);
-	
-	//Maior_Auto_Valor_Vetor(500,M, matA, e, v,l);
+	float e = 0.000001;
+
+
+	//Maior_Auto_Valor_Vetor(1000,M, matA, e, v,l);
 	//Menor_Auto_Valor_Vetor(10000,M,matA,e,v,l);
-	//Desloc_Auto_Valor_Vetor(500,M,matA,e,v,l,3.6);
+	Desloc_Auto_Valor_Vetor(10000,M,matA,e,v,l,3.6);
 
 	printf("\nAuto Vetor\n");
 	impVet(M,v);
