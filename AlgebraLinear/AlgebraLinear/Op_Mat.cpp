@@ -199,6 +199,20 @@ void Escalar(int N, float* V, float Esc){
 	for(int i=0;i<N;i++)
 		V[i] *= Esc;
 }
+void Escalar_Mat(float E, int M, int N, float**A){
+	for(int i=0;i<M;i++)
+		for(int j=0;j<N;j++)
+			A[i][j]*=E;
+}
+float** householder(int N, float** n){
+	float** E = MatIdentidade(N); //E = I -2n*nt
+	float** nt = Transposta(N,1,n);
+	float** H = mult(N,1,N,n,nt);
+	Escalar_Mat(2,N,N,H);
+	E=sub(N,N,E,H);
+	return E;
+}
+
 
 float* Gauss (int N, float **matA, float *vet2){
   
@@ -870,10 +884,41 @@ void Desloc_Auto_Valor_Vetor(int Int, int M, float** A, float e, float*v, float 
 	l=Lb+x;
 }
 
+void S_householder(int N, float **A){
+	float** H_fim = MatIdentidade(N);
+	float **H, *v, *n, norm;
+	float **AT = copia(N,N,A);
+	v = (float*)malloc(sizeof(float)*N);
+	norm=0;
+	
+	for(int j=0; j<(N-2);j++){
+		for(int i=0;i<N;i++)
+			if(i<=j)
+				v[i]=0;
+			else
+				v[i]=AT[i][j];
+		
+		norm = NormaVetor(N,v);
+		n = copiaVet(N,v);
+		n[j+1]-=norm;
+		norm = NormaVetor(N,n);
+		Escalar(N,n,1/norm);
+
+		H = householder(N,VetorColuna(N,n));
+		AT = mult(N,N,N,AT,H);
+		AT = mult(N,N,N,H,AT);
+		H_fim = mult(N,N,N,H_fim,H);
+	}
+	printf("\n AT e H(H1*H2*H3...*Hn-2) \n");
+	imp(N,N,AT);
+	imp(N,N,H_fim);
+
+}
+
 int main()
 {
    
-    int M = 4;
+    int M = 3;
 	int N = M;
 
     float **matA;
@@ -882,7 +927,9 @@ int main()
     for (int i = 0; i < M; i++)
         matA[i] = (float *)malloc(sizeof(float)*(N));
 	preenche(M,N,matA);
-
+	S_householder(M, matA);
+	
+	/*
 	float* v = (float*)malloc(sizeof(float)*M);
 	for(int i=0;i<M;i++)
 		v[i]=1;
@@ -904,7 +951,7 @@ int main()
 	printf("\n Valida: \n ");
 	imp(M,1,Valida);
 
-	/*
+	
 	float* b =(float *)malloc(sizeof(float)*M);
 	preencheVet(M,b);
 	float* x = SEL_QR(M,N,matA,b);
