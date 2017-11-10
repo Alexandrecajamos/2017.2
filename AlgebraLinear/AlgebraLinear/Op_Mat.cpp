@@ -48,6 +48,11 @@ float** copia(int M, int N, float **matA){
     return matB;
 
 }
+void copiaVal(int M, int N, float **matA,float** matB){
+    for(int i = 0; i<M;i++)
+        for(int j=0;j<N;j++)
+            matB[i][j]=matA[i][j];
+}
 float* copiaVet(int M, float* A){
 	float* v = (float *)malloc(sizeof(float)*M);
 	for(int i=0;i<M;i++)
@@ -712,11 +717,9 @@ float** GaussSeidel_Kint(int N, float** A, float *b, int K){
 
 }
 
-float** QR_givens(int M, int N, float** Mat){
-
+float** QR_givens(int M, int N, float** Mat, float **R){
 	float** q = MatIdentidade(M);
-	float** r = copia(M,N, Mat);
-
+	float **r = copia(M,N,Mat);
 	for(int j=0;j<N;j++){
 		for(int i=j+1;i<M;i++){
 			float raio,c,s;
@@ -733,13 +736,7 @@ float** QR_givens(int M, int N, float** Mat){
 
 	}
 	q = Transposta(M,M,q);
-
-	imp(M,M,q);
-	imp(M,N,r);
-
-	float** T = mult(M,M,N,q,r);
-	imp(M,N,T);
-
+	copiaVal(M,N,r,R);
 	return q;
 }
 float** Gram_Schmidt(int M, int N, float** A){
@@ -762,7 +759,6 @@ float** Gram_Schmidt(int M, int N, float** A){
 	//Q = Transposta(N,M,Q);
 	return Q;
 }
-
 float* SEL_QR(int M, int N, float** A, float* b){
 	float** Q = Gram_Schmidt(M,N,A); // Q tranposta 
 	//imp(N,M,Q);
@@ -784,7 +780,7 @@ float* SEL_QR(int M, int N, float** A, float* b){
 	for(int i=0;i<N;i++)
 		v[i]=B[i][0];
 
-	float** T = mult(M,N,N,Transposta(N,M,Q),r);
+	//float** T = mult(M,N,N,Transposta(N,M,Q),r);
 	//imp(M,N,T);
 
 	return v;
@@ -884,7 +880,7 @@ void Desloc_Auto_Valor_Vetor(int Int, int M, float** A, float e, float*v, float 
 	l=Lb+x;
 }
 
-void S_householder(int N, float **A){
+float** S_householder(int N, float **A, float** Vetores){
 	float** H_fim = MatIdentidade(N);
 	float **H, *v, *n, norm;
 	float **AT = copia(N,N,A);
@@ -909,16 +905,46 @@ void S_householder(int N, float **A){
 		AT = mult(N,N,N,H,AT);
 		H_fim = mult(N,N,N,H_fim,H);
 	}
-	printf("\n AT e H(H1*H2*H3...*Hn-2) \n");
-	imp(N,N,AT);
-	imp(N,N,H_fim);
-
+	//printf("\n AT e H(H1*H2*H3...*Hn-2) \n");
+	//imp(N,N,AT);
+	//imp(N,N,H_fim);
+	copiaVal(N,N,H_fim,Vetores);
+	return AT;
 }
+
+float** Diag_QR(int N, int Int, float** Mat, float** Auto_Vet){
+	int k=0;
+	float** r = MatIdentidade(N);
+	float** A = copia(N,N,Mat);
+	float** Q = MatIdentidade(N);
+	float** q;
+	float e = 0.0001;
+	bool Dzero = true;
+	while(k!=Int && Dzero){
+		q = QR_givens(N,N,A,r);	
+		Q = mult(N,N,N,Q, q);
+		A = mult(N,N,N,r,q);
+		k++;
+		//imp(N,N,A);
+		//imp(N,N,Q);
+		Dzero = false;
+
+		for(int i=0;i<(N-1);i++){
+			if(abs(A[i+1][i])>e)
+				Dzero=true;
+		}
+
+	}
+	printf("\n Valor K %d; \n", k);
+	copiaVal(N,N,Q,Auto_Vet);
+	return A;
+}
+
 
 int main()
 {
    
-    int M = 3;
+    int M = 4;
 	int N = M;
 
     float **matA;
@@ -926,10 +952,32 @@ int main()
     matA = (float **)malloc(sizeof(float)*M);
     for (int i = 0; i < M; i++)
         matA[i] = (float *)malloc(sizeof(float)*(N));
-	preenche(M,N,matA);
-	S_householder(M, matA);
 	
-	/*
+	preenche(M,N,matA);
+/*
+	float** Vetores  = MatIdentidade(N);
+	float** D = Diag_QR(M,500,matA, Vetores);
+
+	printf("Teste Diagonalizacao\n");
+	imp(N,N,D);
+	imp(N,N,Vetores);
+	printf("Teste Tri-diagonal\n");
+
+	float** VetT = MatIdentidade(N);
+	float** T = S_householder(N,matA, VetT);
+	imp(N,N,T);
+	imp(N,N,VetT);
+	printf("Teste Diagonalizacao\n");
+
+	float** D2 = Diag_QR(N,500,T,Vetores);
+	imp(N,N,D2);
+	imp(N,N,Vetores);
+
+
+	//S_householder(M, matA);
+	
+	*/
+
 	float* v = (float*)malloc(sizeof(float)*M);
 	for(int i=0;i<M;i++)
 		v[i]=1;
@@ -940,7 +988,7 @@ int main()
 
 	//Maior_Auto_Valor_Vetor(1000,M, matA, e, v,l);
 	//Menor_Auto_Valor_Vetor(10000,M,matA,e,v,l);
-	Desloc_Auto_Valor_Vetor(10000,M,matA,e,v,l,3.6);
+	Desloc_Auto_Valor_Vetor(10000,M,matA,e,v,l,6);
 
 	printf("\nAuto Vetor\n");
 	impVet(M,v);
@@ -951,12 +999,13 @@ int main()
 	printf("\n Valida: \n ");
 	imp(M,1,Valida);
 
-	
+
+	/*
 	float* b =(float *)malloc(sizeof(float)*M);
 	preencheVet(M,b);
 	float* x = SEL_QR(M,N,matA,b);
 	impVet(N,x);
-	*/
+
 
 	/*
 	//matA = QR_givens(M,N,matA);

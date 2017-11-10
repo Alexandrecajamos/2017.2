@@ -1,46 +1,47 @@
-﻿Build started 07/11/2017 14:14:41.
-     1>Project "C:\Users\alexa\Projetos\2017.2\CG\CG\CG.vcxproj" on node 2 (build target(s)).
+﻿Build started 08/11/2017 22:57:32.
+     1>Project "C:\Users\alexa\2017.2\CG\CG\CG.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\CG.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Transformacoes.cpp
          Transformacoes.cpp
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(14): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(14): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(304) : see declaration of 'scanf'
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(23): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(23): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(304) : see declaration of 'scanf'
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(37): warning C4244: 'return' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(310): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(336): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(337): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(435): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(439): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(440): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(453): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(456): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(774): warning C4305: '=' : truncation from 'double' to 'float'
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(774): warning C4305: '=' : truncation from 'double' to 'float'
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(774): warning C4305: '=' : truncation from 'double' to 'float'
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(840): warning C4305: '=' : truncation from 'double' to 'float'
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(841): warning C4305: '=' : truncation from 'double' to 'float'
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(842): warning C4305: '=' : truncation from 'double' to 'float'
-     1>c:\users\alexa\projetos\2017.2\cg\cg\transformacoes.cpp(1004): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(37): warning C4244: 'return' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(310): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(336): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(337): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(435): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(439): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(440): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(453): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(456): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(771): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(771): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(771): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(837): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(838): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(839): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(872): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\alexa\2017.2\cg\cg\transformacoes.cpp(911): warning C4305: '=' : truncation from 'double' to 'float'
        ManifestResourceCompile:
          All outputs are up-to-date.
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\alexa\Projetos\2017.2\CG\Debug\CG.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\CG.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\alexa\Projetos\2017.2\CG\Debug\CG.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\alexa\Projetos\2017.2\CG\Debug\CG.lib" /MACHINE:X86 Debug\CG.exe.embed.manifest.res
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\alexa\2017.2\CG\Debug\CG.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\CG.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\alexa\2017.2\CG\Debug\CG.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\alexa\2017.2\CG\Debug\CG.lib" /MACHINE:X86 Debug\CG.exe.embed.manifest.res
          Debug\Transformacoes.obj
        Manifest:
          C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"Debug\CG.exe.embed.manifest" /manifest Debug\CG.exe.intermediate.manifest
          All outputs are up-to-date.
        LinkEmbedManifest:
          All outputs are up-to-date.
-         CG.vcxproj -> C:\Users\alexa\Projetos\2017.2\CG\Debug\CG.exe
+         CG.vcxproj -> C:\Users\alexa\2017.2\CG\Debug\CG.exe
        FinalizeBuildStatus:
          Deleting file "Debug\CG.unsuccessfulbuild".
          Touching "Debug\CG.lastbuildstate".
-     1>Done Building Project "C:\Users\alexa\Projetos\2017.2\CG\CG\CG.vcxproj" (build target(s)).
+     1>Done Building Project "C:\Users\alexa\2017.2\CG\CG\CG.vcxproj" (build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.56
+Time Elapsed 00:00:01.48

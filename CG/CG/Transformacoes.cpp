@@ -615,6 +615,7 @@ void ImpObj(Obj O){
 
 float intersecciona(Obj O, Ponto Pij, float* normal){
 	float T = -1;
+	float tmin = 999;
 	///IMplementar
 	//1 - Conferir se intersecciona Esfera;
 	//2 - Percorrer Faces 
@@ -630,9 +631,10 @@ float intersecciona(Obj O, Ponto Pij, float* normal){
 	
 
 	if(Delta>=0){
-		
+	
 		for(int i=0;i<O.QtdFaces;i++){
 			Face F = O.F[i];
+
 			float* v1 = subVetor(4,F.P2.Coord,F.P1.Coord);
 			float* v2 = subVetor(4,F.P3.Coord,F.P1.Coord);
 			float *nF = Normal(4,v1,v2);
@@ -654,9 +656,10 @@ float intersecciona(Obj O, Ponto Pij, float* normal){
 					A[k][2]=Pij.Coord[k];
 				}
 				float* lamb = Gauss(4,A,F.P3.Coord);
-				if(lamb[2]>=0){
+				if(lamb[2]>=0  && lamb[2]<tmin){ 
+					
 					float l3 = 1-(lamb[0]+lamb[1]);
-					if(lamb[0]>0 && lamb[0]<1 && lamb[1]>0 && lamb[1]<1 && l3>0 && l3<1){
+					if(lamb[0]>=0 && lamb[0]<=1 && lamb[1]>=0 && lamb[1]<=1 && l3>=0 && l3<=1){
 						T = lamb[2];
 						normal[0]=nF[0];
 						normal[1]=nF[1];
@@ -672,8 +675,6 @@ float intersecciona(Obj O, Ponto Pij, float* normal){
 	
 	return T;
 }
-
-
 struct Observador{
 	float coord[4];
 	float i[4];
@@ -744,12 +745,8 @@ Ponto** PixelsCoord(JanelaVis J, Obj O){
 			Pix[i][j].Coord[1]=Yi;
 			Pix[i][j].Coord[2]=-J.d;
 			Pix[i][j].Coord[3]=1;
-			//float t = intersecciona(O, Pix[i][j]);
-			//if(t != -1)
-				//printf("|t = %f |",t);
-
 		}
-		//printf("\n");
+		
 	}
 	return Pix;
 }
@@ -854,148 +851,152 @@ void Ray(JanelaVis J, Obj O, Observador Ob){
 }
 
 int main(){
-	/*
-	Obj obj; 
+
+	//Define Observador: 
 	
-	Ponto*P; 
-	P = (Ponto *)malloc(sizeof(Ponto)*3);
-	float P1[4] = {6.79,1.12,3.0,1};
+	float PO[4] = {5,0,0,1}; // Posição
+	float LA[4] = {0,0,0,1}; // Look_At
+	float Avup[4] = {0,50,0,1}; // Ponto auxiliar View Up; 
+	
+	Observador Obs = ObsCalc(PO,LA,Avup); //Calcula vetores i, j, k;
+
+	float** Twc = WtoCam(Obs); // Matriz Word to Cam
+	float** Tcw = CAMtoWord(Obs); // Cam to Word;
+
+	//float** conf = mult(4,4,4,Twc,Tcw); imp(4,4,conf);
+	
+	//Definir Janela de visualização
+
+	JanelaVis J; 
+	J.W=0.5; J.H=0.5;
+	J.d=0.7;  
+	
+	J.M=650; J.N=650;
+
+	//Definição do Objeto
+	
+
+		//Definição do Vetor de pontos p/ objeto;
+
+	Ponto*P;  P = (Ponto *)malloc(sizeof(Ponto)*8); //Quantidade de pontos p/ objeto;
+
+	float P1[4] = {-0.5,-0.5,0.5,1};//-0.5,-0.5,0.5
 	P[0] = PreencheP(P1);
-	float P2[4] = {6.52,1.0,2.0,1};
+	float P2[4] = {0.5,-0.5,0.5,1};//0.5,-0.5,0.5
 	P[1] = PreencheP(P2);
-	float P3[4] = {6.27,2.55,2.5,1};
+	float P3[4] = {0.5,-0.5,-0.5,1};//0.5,-0.5,-0.5
 	P[2] = PreencheP(P3);
+	float P4[4] = {-0.5,-0.5,-0.5,1};//-0.5,-0.5,-0.5
+	P[3] = PreencheP(P4);
+	float P5[4] = {-0.5,0.5,0.5,1};//-0.5,0.5,0.5
+	P[4] = PreencheP(P5);
+	float P6[4] = {0.5,0.5,0.5,1};//0.5,0.5,0.5
+	P[5] = PreencheP(P6);
+	float P7[4] = {0.5,0.5,-0.5,1};//0.5,0.5,-0.5
+	P[6] = PreencheP(P7);
+	float P8[4] = {-0.5,0.5,-0.5,1};//-0.5,0.5,-0.5
+	P[7] = PreencheP(P8);
+
+	Obj obj; 
 	obj.Pontos=P;
-	obj.QtdPontos=3;
+	obj.QtdPontos=8;
 	CalcCirc(&obj);
-	
-	
-	//ImpObj(obj);
 
-	float PO[4] = {7.0,1.8,2.5,1};
-	float LA[4] = {5.0,0.75,2.5,1};
-	float Avup[4] = {5.0,1.75,2.5,1};
-	Observador O;
-	O = ObsCalc(PO,LA,Avup);
-	//impVet(4,O.k);
-	float** Twc = WtoCam(O);
-	float** Tcw = CAMtoWord(O);
-	float** conf = mult(4,4,4,Twc,Tcw);
+	//Transforma Objeto em coordenadas de câmera;
 
-	imp(4,4,Twc);
+	Obj O_Cam = Transforma(obj,Twc,4);  
 
-
-	Obj Oc = Transforma(obj,Twc,4);
-
-	//ImpObj(Oc);
-
-	JanelaVis J;
-	J.W=0.5;
-	J.d=0.7;
-	J.H=0.5;
-	J.M=500;
-	J.N=500;
-
-
+	//Definindo material padrão
 	Material M;
-	M.Ar = 0.2;
-	M.Ag = 0;
-	M.Ab = 0;
-	M.Dr = 0;
-	M.Dg = 1;
-	M.Db = 0;
-	M.Er = 0;
-	M.Eg = 1;
-	M.Eb = 0;
-	M.m = 2;
+	M.Ar = 0.2; M.Ag = 0; M.Ab = 0; M.Dr = 0; M.Dg = 1; M.Db = 0; M.Er = 0; M.Eg = 1; M.Eb = 0; M.m = 2;
 
+	//Construção do Vetor de Faces do Objeto
 
-	Face F;
-	F.P1=Oc.Pontos[0];
-	F.P2=Oc.Pontos[1];
-	F.P3=Oc.Pontos[2];
-	F.M  = M;
+	Face *faces = (Face *)malloc(sizeof(Face)*12);
 
+	Face F1, F2, F3, F4, F5, F6, F7, F8, F9, F10,  F11, F12;
 
-	Face *f = (Face *)malloc(sizeof(Face));
-	f[0]=F;
-	Oc.F=f;
-	Oc.QtdFaces=1;
-	ImpObj(Oc);
+	F1.P1=O_Cam.Pontos[0]; F1.P2=O_Cam.Pontos[3]; F1.P3=O_Cam.Pontos[1]; F1.M = M; 	faces[0]=F1;
 
-	float* a = subVetor(4,F.P2.Coord,F.P1.Coord);
-	float* b = subVetor(4,F.P3.Coord,F.P1.Coord);
-	printf("\n");
-	impVet(4,a);
-	printf("\n");
-	impVet(4,b);
-	float* n = Normal(4,a,b);
-	printf("\n");
-	impVet(4,n);
-	printf("\n");printf("\n");
+	F2.P1=O_Cam.Pontos[1]; F2.P2=O_Cam.Pontos[3]; F2.P3=O_Cam.Pontos[2]; F2.M = M; 	faces[1]=F2;
 
-
-	//Ray(J,Oc,O);
-
-
-	Ponto** Pixs = PixelsCoord(J,Oc);
-	impVet(4,Pixs[250][250].Coord);
+	F3.P1=O_Cam.Pontos[4]; F3.P2=O_Cam.Pontos[0]; F3.P3=O_Cam.Pontos[1]; F3.M = M; 	faces[2]=F3;
 	
-	CalcCirc(&Oc);
-	printf("Circulo, raio = %f, centro: \n", Oc.R);
+	F4.P1=O_Cam.Pontos[1]; F4.P2=O_Cam.Pontos[5]; F4.P3=O_Cam.Pontos[4]; F4.M = M; 	faces[3]=F4;
+
+	F5.P1=O_Cam.Pontos[5]; F5.P2=O_Cam.Pontos[1]; F5.P3=O_Cam.Pontos[2]; F5.M = M; 	faces[4]=F5;
+
+	F6.P1=O_Cam.Pontos[2]; F6.P2=O_Cam.Pontos[6]; F6.P3=O_Cam.Pontos[5]; F6.M = M;  faces[5]=F6;
+
+	F7.P1=O_Cam.Pontos[6]; F7.P2=O_Cam.Pontos[2]; F7.P3=O_Cam.Pontos[3]; F7.M = M; 	faces[6]=F7;
+
+	F8.P1=O_Cam.Pontos[3]; F8.P2=O_Cam.Pontos[7]; F8.P3=O_Cam.Pontos[6]; F8.M = M; 	faces[7]=F8;
+
+	F9.P1=O_Cam.Pontos[3]; F9.P2=O_Cam.Pontos[0]; F9.P3=O_Cam.Pontos[4]; F9.M = M;	faces[8]=F9;
+
+	F10.P1=O_Cam.Pontos[4]; F10.P2=O_Cam.Pontos[7]; F10.P3=O_Cam.Pontos[3]; F10.M = M; faces[9]=F10;
+
+	F11.P1=O_Cam.Pontos[4]; F11.P2=O_Cam.Pontos[5]; F11.P3=O_Cam.Pontos[7]; F11.M = M; faces[10]=F11;
+
+	F12.P1=O_Cam.Pontos[5]; F12.P2=O_Cam.Pontos[6]; F12.P3=O_Cam.Pontos[7]; F12.M = M; faces[11]=F12;
+
+	// Atribui vetor de faces ao Objeto;
+	O_Cam.F=faces;
+	O_Cam.QtdFaces=12;
+
+
 	
-	impVet(4,Oc.CentroCirc.Coord);
+	//Calcula coordenadas dos pontos na janela de visualização
+		//Ponto** Pixs = PixelsCoord(J,Oc);
 
+	float i,j;
+	i=250; j=250;
 
-	float* nf = (float *)malloc(sizeof(float)*4);
-	float t = intersecciona(Oc,Pixs[250][250],n);
-	if(t != -1)
-		printf("\n\nValor t = %f",t);
+	float DX,DY;
+	DX=J.W/J.M;
+	DY=J.H/J.N;
+
+	Ponto Pixel;
+	float Yi= (J.H/2)-(DY/2)-(i*DY);
+	float Xj = (-J.W/2)+(DX/2)+(j*DX);
+			
+	Pixel.Coord[0]=Xj;
+	Pixel.Coord[1]=Yi;
+	Pixel.Coord[2]=-J.d;
+	Pixel.Coord[3]=1;
+	
+	
+	//impVet(4,Pixel.Coord);
+
+	float * n = (float*)malloc(sizeof(float*)*4);
+
+	float t = intersecciona(O_Cam,Pixel,n);
+	
+	if(t != -1){
+		printf("\n\nDeu certo\n\n");
+		printf("\nTeste t = %f " ,t);
+		Escalar(4, Pixel.Coord,t);
+	
+	}
+	
 	
 	 //impVet(4,n);
 
-	*/
+
 
 
 	/*
-	JanelaVis J;
-	J.W=5;
-	J.d=5;
-	J.H=5;
-	J.M=10;
-	J.N=10;
-	
-	Ponto** Pixs = PixelsCoord(J);
-
-
-	float PO[4] = {1,3,4,1};
-	float LA[4] = {5,4,3,1};
-	float Avup[4] = {5,9,3,1};
-	Observador O;
-	O = ObsCalc(PO,LA,Avup);
-
-	impVet(4,O.k);
-	float** T = CAMtoWord(O);
-	float** T2 = WtoCam(O);
-	imp(4,4,T);
-	imp(4,4,T2);
-	float** I = mult(4,4,4,T,T2);
-	imp(4,4,I);
-
-	*/
-
-	
 	Obj obj, objT; 
 	
 	Ponto*P; 
 	P = (Ponto *)malloc(sizeof(Ponto)*3);
-	float P1[4] = {0,0,0,1};
+	float P1[4] = {0,0,0,1};// 349049 A = 9, B = 4; C = 0; D = 9; E = 4; F = 3; 
 	P[0] = PreencheP(P1);
-	float P2[4] = {0,0,9,1};
+	float P2[4] = {0,0,11,1}; //9
 	P[1] = PreencheP(P2);
-	float P3[4] = {11,0,0,1};
+	float P3[4] = {7,0,0,1}; //11
 	P[2] = PreencheP(P3);
-	float P4[4] = {0,6,0,1};
+	float P4[4] = {0,1,0,1};//6
 	P[3] = PreencheP(P4);
 	
 	obj.Pontos=P;
@@ -1013,7 +1014,7 @@ int main(){
 
 	float* t1 = subVetor(4,P1,objT.Pontos[2].Coord);
 	float **T1 = Translacao(3,t1);
-	float P3B[4] = {60,60,0,1};
+	float P3B[4] = {300,50,0,1}; // A = 9, B = 4; C = 0; D = 9; E = 4; F = 3; 
 	float* t2 = subVetor(4,P3B,P1);
 	float **T2 = Translacao(3,t2);
 	
@@ -1034,7 +1035,7 @@ int main(){
 	float* v2 = Normal(4,F1,F2);
 	float O = ProdutoEscalar(4, v1,v2);
 	//printf("Cos O = %f",O);
-	float** Q = RQ2(              O,v);
+	float** Q = RQ2(O,v);
 	
 	objT = Transforma(objT,Q,4);
 	ImpObj(objT);
@@ -1093,7 +1094,7 @@ int main(){
 	imp(4,4,T2);
 	imp(4,4,T);
 	//
-	
+	*/
 	
 	
 	system("pause");
