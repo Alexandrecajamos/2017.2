@@ -132,6 +132,14 @@ float** Transposta (int l, int c, float** A) {
   }
 	return matA;
 }
+
+void Transposta2 (int l, int c, float** A) {
+	float** B = copia(l,c,A);
+  for(int i = 0; i < l; i++){
+	for(int j=0;j<c;j++)
+		A[i][j] = B[j][i];
+  }
+}
 float** VetorColuna(int N, float* V){
 	float** v;
 	v = (float**)malloc(sizeof(float)*(N));
@@ -181,7 +189,24 @@ float** sub(int M, int N, float** A, float** B){
 	}
 	return C;
 }
+float NormaMatriz(int M, int N, float** V){
+	float norma = 0;
+	for(int i=0;i<M;i++)
+		for(int j=0;j<N;j++)
+			norma+=(V[i][j]*V[i][j]);
+	return sqrt(norma);
+}
 
+float NormaMatriz_inf(int M, int N, float**V){
+	float max = 0;
+	for(int i=0;i<M;i++)
+		for(int j=0;j<N;j++){
+			float ab = abs(V[i][j]);
+			if(max<ab)
+				max = ab;
+		}
+	return max;		
+}
 float* subVetor(int N, float* A, float* B){
 	float* v = (float *)malloc(sizeof(float)*N);
 	for(int i=0;i<N;i++)
@@ -893,17 +918,24 @@ float** S_householder(int N, float **A, float** Vetores){
 				v[i]=0;
 			else
 				v[i]=AT[i][j];
-		
+		//impVet(N,v);
 		norm = NormaVetor(N,v);
 		n = copiaVet(N,v);
 		n[j+1]-=norm;
 		norm = NormaVetor(N,n);
 		Escalar(N,n,1/norm);
+		//impVet(N,n);
 
 		H = householder(N,VetorColuna(N,n));
+		//imp(N,N,H);
+		//imp(N,N,AT);
 		AT = mult(N,N,N,AT,H);
 		AT = mult(N,N,N,H,AT);
+		
+		//imp(N,N,AT);
 		H_fim = mult(N,N,N,H_fim,H);
+		
+		//imp(N,N,H_fim);
 	}
 	//printf("\n AT e H(H1*H2*H3...*Hn-2) \n");
 	//imp(N,N,AT);
@@ -918,66 +950,168 @@ float** Diag_QR(int N, int Int, float** Mat, float** Auto_Vet){
 	float** A = copia(N,N,Mat);
 	float** Q = MatIdentidade(N);
 	float** q;
-	float e = 0.0001;
-	bool Dzero = true;
-	while(k!=Int && Dzero){
+	float e = 0.000001;
+	bool Inter = true;
+	float n2 = 0;
+	for(int i=0;i<N;i++)
+		n2+=NormaVetor(N,A[i]);
+	int cont = 0;
+	while(k!=Int && Inter){
+		float n1 = n2;
 		q = QR_givens(N,N,A,r);	
-		Q = mult(N,N,N,Q, q);
+		Q = mult(N,N,N,Q,q);
 		A = mult(N,N,N,r,q);
-		k++;
-		//imp(N,N,A);
-		//imp(N,N,Q);
-		Dzero = false;
+		n2 = 0;
+		
+		for(int i=0;i<N;i++)
+			n2+=NormaVetor(N,A[i]);
 
-		for(int i=0;i<(N-1);i++){
-			if(abs(A[i+1][i])>e)
-				Dzero=true;
+		//printf("\nNorma de A[k-1] = %f\n", n1);
+		//printf("\nNorma de A[k] = %f\n", n2);
+		if(abs((n2-n1))<e){
+			cont++;
+			if(cont==29)
+				Inter = false;
+		}else{
+			cont=0;
 		}
+		k++;
 
 	}
 	printf("\n Valor K %d; \n", k);
+	
+	for(int i=0;i<(N-1);i++){
+		if(abs(A[i+1][i])>e)
+			printf("\n Auto Valores complexos \n");
+	}
+
 	copiaVal(N,N,Q,Auto_Vet);
 	return A;
 }
 
+void AutoValores_Vetores(int N, float** Mat, float** Vetores, float* valores){
+	float** H = MatIdentidade(N);
+	float** Q = MatIdentidade(N);
+	float** T = S_householder(N,Mat,H);
+	float** D = Diag_QR(N,500,T,Q);;
+	float** Vet = mult(N,N,N,H,Q);
+	copiaVal(N,N,Vet,Vetores);
+	for(int i=0;i<N;i++)
+		valores[i]=D[i][i]; 
+	
+}
+
+void SVD(int M, int N, float** Mat, float** U, float** S, float** V){
+	float** AT = Transposta(M,N,Mat);
+	float** AtA = mult(N,M,N,AT,Mat);
+	float* autoVal = (float*)malloc(sizeof(float)*N);
+	AutoValores_Vetores(N,AtA,V,autoVal);
+	float** u = mult(M,N,N,Mat,V);
+	Transposta2(N,N,V);
+	for(int i=0; i<N; i++){
+		S[i][i]= sqrt(autoVal[i]);
+	}
+	for(int i=0; i<M; i++){
+		for(int j=0;j<N;j++){
+			U[i][j] = u[i][j]/S[j][j];
+		}
+	}
+	
+}
 
 int main()
 {
-   
+
+	//float B[4][4]= {{18.324146,0.001371,0.000357,0.000001},{0.001370,8.959310,-0.831104,-0.000003},{0.000358,-0.831104,-7.037904,-0.000019},{0.000000,-0.000003,-0.000019,-2.245561}};
+	//float A[4][4] = {{1,2,6,8},{2,5,7,-3},{6,7,9,4},{8,-3,4,3}};
+
+	float A[4][3] = {{1,2,1},{1,1,1},{1,1,1},{1,1,1}};
+
+
     int M = 4;
-	int N = M;
+	int N = 3;
 
     float **matA;
 
     matA = (float **)malloc(sizeof(float)*M);
-    for (int i = 0; i < M; i++)
+    for (int i = 0; i < M; i++){
         matA[i] = (float *)malloc(sizeof(float)*(N));
+		matA[i] = A[i];
+	}
+	//preenche(M,N,matA);
+	float** U = MatIdentidade(M);
+	float** S = MatIdentidade(N);
+	float** V = MatIdentidade(N);
+	SVD(M,N,matA,U,S,V);
+	printf("\n Matriz Original \n");
+	imp(M,N,matA);
+	printf("\nU:\n");
+	imp(M,N,U);
+	printf("\nS:\n");
+	imp(N,N,S);
+	printf("\nV:\n");
+	imp(N,N,V);
 	
-	preenche(M,N,matA);
-/*
-	float** Vetores  = MatIdentidade(N);
-	float** D = Diag_QR(M,500,matA, Vetores);
+	printf("\nU*S*V:\n");
+	float** Temp = mult(M,N,N,U,S);
+	Temp = mult(M,N,N,Temp,V);
+	imp(M,N,Temp);
+
+
+	/*
+	float** Vetores = MatIdentidade(N);
+	float* Valores = (float*)malloc(sizeof(float)*M);
+	AutoValores_Vetores(N,matA,Vetores,Valores);
+	printf("\n Matriz Original \n");
+	imp(M,N,matA);
+	printf("\nAuto Vetores");
+	imp(N,N,Vetores);
+	printf("\nAuto valores: \n");
+	impVet(N,Valores);
+	*/
+
+	/*
+	float* vetor = (float*)malloc(sizeof(float)*M);
+	float x = 0;
+	Maior_Auto_Valor_Vetor(500,M,matA,0.000001, vetor, x);
+	printf("\n Auto vetor (Potencia regular) : \n");
+	impVet(M,vetor);
+	printf("\n Auto valor associado : %f ", x);
+	*/
+	//float** Teste = mult(4,4,1,matA,Vetores);
+	//imp(N,1,Teste);
+
+	/*
+	float** T = S_householder(M,matA,Vetores);
+	printf("Teste tridiagonal\n");
+	
+	
+	imp(N,N,T);
+	float** D = Diag_QR(M,500,T, Vetores);
 
 	printf("Teste Diagonalizacao\n");
 	imp(N,N,D);
 	imp(N,N,Vetores);
-	printf("Teste Tri-diagonal\n");
+	*/
+	//printf("Teste Tri-diagonal\n");
+	
+	//float** VetT = MatIdentidade(N);
+	//float** T = S_householder(N,matA, VetT);
+	//imp(N,N,T);
+	//imp(N,N,VetT);
+	//printf("Teste Diagonalizacao\n");
 
-	float** VetT = MatIdentidade(N);
-	float** T = S_householder(N,matA, VetT);
-	imp(N,N,T);
-	imp(N,N,VetT);
-	printf("Teste Diagonalizacao\n");
 
-	float** D2 = Diag_QR(N,500,T,Vetores);
-	imp(N,N,D2);
-	imp(N,N,Vetores);
-
+	//float** D2 = Diag_QR(N,500,matA,Vetores);
+	//imp(N,N,D2);
+	//imp(N,N,Vetores);
+	
 
 	//S_householder(M, matA);
 	
-	*/
+	
 
+	/*
 	float* v = (float*)malloc(sizeof(float)*M);
 	for(int i=0;i<M;i++)
 		v[i]=1;
@@ -998,106 +1132,8 @@ int main()
 
 	printf("\n Valida: \n ");
 	imp(M,1,Valida);
-
-
-	/*
-	float* b =(float *)malloc(sizeof(float)*M);
-	preencheVet(M,b);
-	float* x = SEL_QR(M,N,matA,b);
-	impVet(N,x);
-
-
-	/*
-	//matA = QR_givens(M,N,matA);
-	float** Q = Gram_Schmidt(M,N,matA);
-	//imp(N,M,Q);
-
-	float** r = mult(N,M,N,Q,matA);
-	imp(N,N,r);
-
-
-
-	Q = Transposta(N,M,Q);
-	float** T = mult(M,N,N,Q,r);
-	imp(M,N,T);
-
 	*/
 
-
-	//float x[4] = {-1,0,1,2};
-	//float y[4] = {1,-1,2,3};
-	//matA = MMQ(4,3,x,y);
-
-
-    //Sistemas de equações lineares:
-    /*
-    preenche(N, N, matA);
-    float *vetX,*vetB;
-    vetB = (float *)malloc(sizeof(float)*N);
-    vetX = (float *)malloc(sizeof(float)*N);
-
-    preencheVet(N,vetB);
-   
-   
-    //vetX = Gauss(N,matA,vetB);
-    //vetX = GaussJordan(N, matA, vetB);
-    //vetX = SELDecLU(N,matA,vetB);
-    //vetX = SELCholensky(N,matA,vetB);
-
-    impVet(N,vetX);
-    */
-   
-    //preenche(N, N, matA);
-    //InversaGJ(N,matA);
-   
-    //Teste LU
-    /*
-    preenche(N, N, matA);
-    float **matB = copia(N,N,matA);
-    matA = DecLU(N,matA);
-    if(ConfereLU(N,matA,matB))
-        imp(N,N,matA);
-    else
-        printf("\n Erro durante a decomposição, L*U != A\n");
-    */
-	
-
-   
-    //Cholesky
-    /*
-    preenche(N,N,matA);
-    float ** S = Cholesky(N,matA);
-    float ** ST = Transposta(N,N,S);
-    float** multS= mult(N,N,N,S,ST);
-    
-	printf("\nCholensky concluudo:\n");
-    imp(N,N,matA);
-    printf("\nS=\n");
-    imp(N,N,S);
-    printf("\nST=\n");
-    imp(N,N,ST);
-	printf("\nMult SxSt\n");
-	imp(N,N,multS);
-	
-    */
-
-    /*
-    //Decomposição L e U com temporizacao:
-    clock_t Ticks[2];
-   
-    preencheAleatorio(N,N,matA,100,1);
-    //imp(N,N,matA);   
-   
-    Ticks[0] = clock();
-   
-    matA = DecLU(N,matA);
-   
-    //Clock;
-    Ticks[1] = clock();
-    double Tempo = (Ticks[1] - Ticks[0]) * 1000.0 / CLOCKS_PER_SEC;
-    printf("Tempo gasto: %g ms. \n", Tempo);
-       
-    */
     system("pause");
     return 0;
 }

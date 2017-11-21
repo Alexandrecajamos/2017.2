@@ -728,7 +728,7 @@ struct Cenario{
 	Obj *Objetos;
 	int QtdObjetos;
 };
-Ponto** PixelsCoord(JanelaVis J, Obj O){
+Ponto** PixelsCoord(JanelaVis J){
 	float DX,DY;
 	DX=J.W/J.M;
 	DY=J.H/J.N;
@@ -854,56 +854,77 @@ int main(){
 
 	//Define Observador: 
 	
-	float PO[4] = {5,0,0,1}; // Posição
-	float LA[4] = {0,0,0,1}; // Look_At
-	float Avup[4] = {0,50,0,1}; // Ponto auxiliar View Up; 
+	float PO[4] = {10,11,14,1}; // Posição
+	float LA[4] = {1,0,4,1}; // Look_At
+	float Avup[4] = {7,8,5,1}; // Ponto auxiliar View Up; 
 	
 	Observador Obs = ObsCalc(PO,LA,Avup); //Calcula vetores i, j, k;
 
 	float** Twc = WtoCam(Obs); // Matriz Word to Cam
 	float** Tcw = CAMtoWord(Obs); // Cam to Word;
-
+	imp(4,4,Twc);
 	//float** conf = mult(4,4,4,Twc,Tcw); imp(4,4,conf);
 	
 	//Definir Janela de visualização
 
 	JanelaVis J; 
-	J.W=0.5; J.H=0.5;
-	J.d=0.7;  
+	J.W=10; J.H=10;
+	J.d=4;  
 	
-	J.M=650; J.N=650;
+	J.M=1000; J.N=1000;
+
+	Ponto** pixs = PixelsCoord(J);
+	Escalar(3,pixs[20][5].Coord,20);
+	//impVet(4,pixs[20][5].Coord);
+
 
 	//Definição do Objeto
 	
 
 		//Definição do Vetor de pontos p/ objeto;
 
-	Ponto*P;  P = (Ponto *)malloc(sizeof(Ponto)*8); //Quantidade de pontos p/ objeto;
+	Ponto*P;  P = (Ponto *)malloc(sizeof(Ponto)*4); //Quantidade de pontos p/ objeto;
 
-	float P1[4] = {-0.5,-0.5,0.5,1};//-0.5,-0.5,0.5
+	float P1[4] = {-5,-5,-4,1};
 	P[0] = PreencheP(P1);
-	float P2[4] = {0.5,-0.5,0.5,1};//0.5,-0.5,0.5
+	float P2[4] = {5,5,-4,1};
 	P[1] = PreencheP(P2);
-	float P3[4] = {0.5,-0.5,-0.5,1};//0.5,-0.5,-0.5
+	float P3[4] = {0,5,-20,1};
 	P[2] = PreencheP(P3);
-	float P4[4] = {-0.5,-0.5,-0.5,1};//-0.5,-0.5,-0.5
-	P[3] = PreencheP(P4);
-	float P5[4] = {-0.5,0.5,0.5,1};//-0.5,0.5,0.5
-	P[4] = PreencheP(P5);
-	float P6[4] = {0.5,0.5,0.5,1};//0.5,0.5,0.5
-	P[5] = PreencheP(P6);
-	float P7[4] = {0.5,0.5,-0.5,1};//0.5,0.5,-0.5
-	P[6] = PreencheP(P7);
-	float P8[4] = {-0.5,0.5,-0.5,1};//-0.5,0.5,-0.5
-	P[7] = PreencheP(P8);
+	P[3] = PreencheP(pixs[20][5].Coord);
 
 	Obj obj; 
 	obj.Pontos=P;
-	obj.QtdPontos=8;
+	obj.QtdPontos=4;
 	CalcCirc(&obj);
 
-	//Transforma Objeto em coordenadas de câmera;
+	ImpObj(obj);
 
+    float* e1 = subVetor(4, obj.Pontos[1].Coord,obj.Pontos[0].Coord); // Vetor P1P2
+	float* e2 = subVetor(4, obj.Pontos[2].Coord,obj.Pontos[0].Coord); // Vetor P1P3
+	//impVet(4,e1);
+	//impVet(4,e2);
+	float* n = Normal(4,e1,e2);
+	impVet(4,n);
+	float** Es = EspelhoArb(3,VetorColuna(4,n));
+	float o[4] = {0,0,0,1};
+	float* t1 = subVetor(4,o ,obj.Pontos[0].Coord);// Vetor OP1
+	float **T1 = Translacao(3,t1);
+	float **T2 = Translacao(3,obj.Pontos[0].Coord);
+	float ** T = mult(4,4,4,T2,Es);
+	T = mult(4,4,4,T,T1);
+	obj = Transforma(obj,T,4);
+	
+	ImpObj(obj);
+
+	imp(4,4,T1);
+	imp(4,4,Es);
+	imp(4,4,T2);
+
+
+
+	//Transforma Objeto em coordenadas de câmera;
+	/*
 	Obj O_Cam = Transforma(obj,Twc,4);  
 
 	//Definindo material padrão
@@ -912,33 +933,13 @@ int main(){
 
 	//Construção do Vetor de Faces do Objeto
 
-	Face *faces = (Face *)malloc(sizeof(Face)*12);
+	Face *faces = (Face *)malloc(sizeof(Face));
 
-	Face F1, F2, F3, F4, F5, F6, F7, F8, F9, F10,  F11, F12;
+	Face F1;
 
 	F1.P1=O_Cam.Pontos[0]; F1.P2=O_Cam.Pontos[3]; F1.P3=O_Cam.Pontos[1]; F1.M = M; 	faces[0]=F1;
 
-	F2.P1=O_Cam.Pontos[1]; F2.P2=O_Cam.Pontos[3]; F2.P3=O_Cam.Pontos[2]; F2.M = M; 	faces[1]=F2;
 
-	F3.P1=O_Cam.Pontos[4]; F3.P2=O_Cam.Pontos[0]; F3.P3=O_Cam.Pontos[1]; F3.M = M; 	faces[2]=F3;
-	
-	F4.P1=O_Cam.Pontos[1]; F4.P2=O_Cam.Pontos[5]; F4.P3=O_Cam.Pontos[4]; F4.M = M; 	faces[3]=F4;
-
-	F5.P1=O_Cam.Pontos[5]; F5.P2=O_Cam.Pontos[1]; F5.P3=O_Cam.Pontos[2]; F5.M = M; 	faces[4]=F5;
-
-	F6.P1=O_Cam.Pontos[2]; F6.P2=O_Cam.Pontos[6]; F6.P3=O_Cam.Pontos[5]; F6.M = M;  faces[5]=F6;
-
-	F7.P1=O_Cam.Pontos[6]; F7.P2=O_Cam.Pontos[2]; F7.P3=O_Cam.Pontos[3]; F7.M = M; 	faces[6]=F7;
-
-	F8.P1=O_Cam.Pontos[3]; F8.P2=O_Cam.Pontos[7]; F8.P3=O_Cam.Pontos[6]; F8.M = M; 	faces[7]=F8;
-
-	F9.P1=O_Cam.Pontos[3]; F9.P2=O_Cam.Pontos[0]; F9.P3=O_Cam.Pontos[4]; F9.M = M;	faces[8]=F9;
-
-	F10.P1=O_Cam.Pontos[4]; F10.P2=O_Cam.Pontos[7]; F10.P3=O_Cam.Pontos[3]; F10.M = M; faces[9]=F10;
-
-	F11.P1=O_Cam.Pontos[4]; F11.P2=O_Cam.Pontos[5]; F11.P3=O_Cam.Pontos[7]; F11.M = M; faces[10]=F11;
-
-	F12.P1=O_Cam.Pontos[5]; F12.P2=O_Cam.Pontos[6]; F12.P3=O_Cam.Pontos[7]; F12.M = M; faces[11]=F12;
 
 	// Atribui vetor de faces ao Objeto;
 	O_Cam.F=faces;

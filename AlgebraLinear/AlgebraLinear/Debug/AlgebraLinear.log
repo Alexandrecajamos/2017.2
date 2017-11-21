@@ -1,4 +1,4 @@
-﻿Build started 10/11/2017 17:58:12.
+﻿Build started 20/11/2017 22:01:40.
      1>Project "C:\Users\alexa\2017.2\AlgebraLinear\AlgebraLinear\AlgebraLinear.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\AlgebraLinear.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -10,12 +10,11 @@
      1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(22): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(304) : see declaration of 'scanf'
      1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(36): warning C4244: 'return' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(457): warning C4101: 'alfa' : unreferenced local variable
-     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(494): warning C4101: 'alfa' : unreferenced local variable
-     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(609): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(611): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(921): warning C4305: 'initializing' : truncation from 'double' to 'float'
-     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(986): warning C4305: 'initializing' : truncation from 'double' to 'float'
+     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(482): warning C4101: 'alfa' : unreferenced local variable
+     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(519): warning C4101: 'alfa' : unreferenced local variable
+     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(634): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(636): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\alexa\2017.2\algebralinear\algebralinear\op_mat.cpp(953): warning C4305: 'initializing' : truncation from 'double' to 'float'
        ManifestResourceCompile:
          All outputs are up-to-date.
        Link:
@@ -34,4 +33,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.68
+Time Elapsed 00:00:00.78
