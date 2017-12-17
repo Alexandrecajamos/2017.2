@@ -244,8 +244,10 @@ float** householder(int N, float** n){
 }
 
 
-float* Gauss (int N, float **matA, float *vet2){
+float* Gauss (int N, float **A, float *b){
   
+	float** matA = copia(N,N,A);
+	float* vet2 = copiaVet(N,b);
     float* vet1 = (float *)malloc(sizeof(float)*N);
    
     //Vetor auxiliar para alterar índices de incognitas em caso de pivotação
@@ -287,8 +289,10 @@ float* Gauss (int N, float **matA, float *vet2){
             }
         }
     }
+	
+
     //Resubstituição
-   //imp(N,N,matA);
+   ///imp(N,N,matA);
    //impVet(N,vet2);
     for(i = (N-1); i >=0; i--){
         float soma = 0;
@@ -306,8 +310,9 @@ float* Gauss (int N, float **matA, float *vet2){
   
     return vet1;
 }
-float* GaussJordan(int N, float **matA, float *vet2){
-  
+float* GaussJordan(int N, float **A, float *b){
+	float** matA = copia(N,N,A);
+	float* vet2 = copiaVet(N,b);
     //Vetor Referência p/ Pivotacao
   
     int* vetAux = (int *)malloc(sizeof(int)*N);
@@ -442,8 +447,8 @@ float** InversaGJ(int N, float **matA){
     imp(N,N*2,Inv);
     return Inv;
 }
-float** DecLU(int N, float **A){
-   
+float** DecLU(int N, float **Mat){
+    float** A = copia(N,N,Mat);
     for(int j=0; j<N;j++){
    
         for(int i=0;i<=j;i++){
@@ -476,8 +481,8 @@ float** DecLU2(int N, float **A){
     return A;
 }
 
-float* SELDecLU(int N, float **matA, float *vet1){
-
+float* SELDecLU(int N, float **matA, float *b){
+	float*vet1 = copiaVet(N,b);
     int i,j;
     float alfa;
     float** L;
@@ -573,8 +578,8 @@ float** Cholesky(int N, float** A){
     }
     return S;
 }
-float* SELCholensky(int N, float** A, float *B){
-   
+float* SELCholensky(int N, float** A, float *b){
+    float*B = copiaVet(N,b);
     A = Cholesky(N,A);
     float** S2 = Transposta(N,N,A);
 
@@ -670,53 +675,6 @@ float** MMQ(int N, int M, float* x, float*y ){
 	return matA;
 }
 
-float** Jacobi_Kint(int N, float** A, float *b, int K){
-	
-	float** x = (float **)malloc(sizeof(float)*N);
-		for (int i = 0; i < N; i++){
-			x[i]=(float *)malloc(sizeof(float)*(K));
-			x[i][0]=0;
-		}
-
-		for(int k=1;k<N;k++){
-			
-			for(int i=0;i<N;i++){
-				float som = 0;
-				for(int j=0;j<N;j++)
-					som+= (A[i][j]*x[j][k-1]);
-			
-				x[i][k]= (-som+b[i])/A[i][i];
-			}
-		}
-		return x;
-
-}
-float* Jacobi_error(int N, float** A, float *b, float e){
-
-	float *Xk = (float *)malloc(sizeof(float)*(N));
-	float *Xkb = (float *)malloc(sizeof(float)*(N));
-	for(int i=0;i<N;i++)
-		Xk[i]=0;
-	bool Error = true;
-	while(Error){
-		for(int i=0;i<N;i++){
-			float som = 0;
-			for(int j=0;j<N;j++)
-				som+= (A[i][j]*Xk[j]);
-			Xkb[i]= (-som+b[i])/A[i][i];
-		}
-		int cont=0;
-		float Er = NormaVetor(N,Xkb);
-
-		if(Er<e)
-			Error=false;	
-		//Se o Erro ainda não foi satisfeito, enstão copiar vetor Kb p/ K;
-		if(Error)
-			for(int i=0;i<N;i++)
-				Xk[i]=Xkb[i];
-	}
-	return Xkb;
-}
 float** GaussSeidel_Kint(int N, float** A, float *b, int K){
 	
 	float** x = (float **)malloc(sizeof(float)*N);
@@ -742,6 +700,136 @@ float** GaussSeidel_Kint(int N, float** A, float *b, int K){
 
 }
 
+float* Jacobi(int N, float** A, float *b, float e, int kMax){
+	float*x,*x_novo;
+
+	x=(float *)malloc(sizeof(float)*N);
+	x_novo=(float *)malloc(sizeof(float)*N);
+
+	bool tool=false;
+	float n1=0,n2=0;
+	int k=0;
+	while(k < kMax && !tool)
+	{
+		for(int i=0;i<N;i++){
+		x_novo[i]=0;
+		}
+
+		for(int i=0; i<N;i++){
+			float soma = 0;
+			for(int j=0;j<N;j++){
+				//printf("\n soma = %f", soma);
+				if(i!=j)
+					soma += (A[i][j]*x[j]);
+			}
+			x_novo[i] = (b[i]-soma)/A[i][i];
+		}
+
+		n1 = NormaVetor(N,x);
+		n2 = NormaVetor(N,x_novo);
+
+		if(abs(n2-n1)<e)
+			tool=true;
+		else
+			for(int i=0;i<N;i++){
+				x[i] = x_novo[i];
+			}
+		k++;
+	}
+	printf("\n Num Interacoes = %d",k);
+	return x_novo;
+
+}
+float* Gauss_Seidel(int N, float** A, float *b, float e, int kMax){
+	float*x,*x_novo;
+
+	x=(float *)malloc(sizeof(float)*N);
+	x_novo=(float *)malloc(sizeof(float)*N);
+	
+	for(int i=0;i<N;i++){
+		x[i]=0;
+	}
+
+	bool tool=false;
+	float n1=0,n2=0;
+	int k=0;
+	while(k < kMax && !tool)
+	{
+
+		for(int i=0; i<N;i++){
+			float soma = 0;
+			for(int j=0;j<i;j++)
+				soma += (A[i][j]*x[j]);
+			for(int j=i+1;j<N;j++)
+				soma += (A[i][j]*x_novo[j]);
+
+			x_novo[i] = (b[i]-soma)/A[i][i];
+		}
+
+		n1 = NormaVetor(N,x);
+		n2 = NormaVetor(N,x_novo);
+
+		if(abs(n2-n1)<e)
+			tool=true;
+		else
+			for(int i=0;i<N;i++){
+				x[i] = x_novo[i];
+			}
+		k++;
+	}
+	
+	printf("\n Num Interacoes = %d",k);
+	return x_novo;
+
+}
+
+float* SOR(int N, float** A, float *b, float e, int kMax, float W){
+	float*x,*x_novo;
+
+	x=(float *)malloc(sizeof(float)*N);
+	x_novo=(float *)malloc(sizeof(float)*N);
+	
+	for(int i=0;i<N;i++){
+		x[i]=0;
+	}
+
+	bool tool=false;
+	float n1=0,n2=0;
+	int k=0;
+
+	while(k < kMax && !tool)
+	{
+
+		for(int i=0; i<N;i++){
+			float soma1 = 0;
+			float soma2 =0;
+			for(int j=0;j<i;j++)
+				soma1 += (A[i][j]*x[j]);
+			for(int j=i+1;j<N;j++)
+				soma2 += (A[i][j]*x_novo[j]);
+
+			float GS = (b[i]-soma1-soma2)/A[i][i];
+			x_novo[i] = ((1-W)*x[i]) + (W*GS);
+		}
+
+		n1 = NormaVetor(N,x);
+		n2 = NormaVetor(N,x_novo);
+
+		if(abs(n2-n1)<e)
+			tool=true;
+		else
+			for(int i=0;i<N;i++){
+				x[i] = x_novo[i];
+			}
+		k++;
+	}
+	
+	printf("\n Num Interacoes = %d",k);
+	return x_novo;
+
+}
+
+
 float** QR_givens(int M, int N, float** Mat, float **R){
 	float** q = MatIdentidade(M);
 	float **r = copia(M,N,Mat);
@@ -764,6 +852,46 @@ float** QR_givens(int M, int N, float** Mat, float **R){
 	copiaVal(M,N,r,R);
 	return q;
 }
+float** QR_HouseHolder(int M, int N, float** Mat, float **R){
+	float** Q = MatIdentidade(M);
+	float **r = copia(M,N,Mat);
+	float** H = MatIdentidade(M);
+	float*v = (float*)malloc(sizeof(float)*N);
+	float norm=0;
+	float*n;
+
+	for(int j=0;j<N-2;j++){
+
+		for(int i=0;i<N;i++)
+			if(i<j)
+				v[i]=0;
+			else
+				v[i]=r[i][j];
+
+		norm = NormaVetor(N,v);
+		printf("V: \n");
+		impVet(N,v);
+		n = copiaVet(N,v);
+		n[j] -= norm;
+		norm = NormaVetor(N,n);
+		printf("N: \n");
+		Escalar(N,n,1/norm);
+		impVet(N,n);
+		
+		H = householder(N,VetorColuna(N,n));
+
+		imp(M,N,H);
+
+		r = mult(M,M,N,H,r);
+		Q = mult(M,M,M,Q,H);
+		
+	}
+	Q = Transposta(M,M,Q);
+	copiaVal(M,N,r,R);
+	return Q;
+}
+
+
 float** Gram_Schmidt(int M, int N, float** A){
 	float** Q = Transposta(M,N,A);
 	Escalar(M,Q[0],1/NormaVetor(M,Q[0]));
@@ -978,7 +1106,7 @@ float** Diag_QR(int N, int Int, float** Mat, float** Auto_Vet){
 		k++;
 
 	}
-	printf("\n Valor K %d; \n", k);
+	//printf("\n Valor K %d; \n", k);
 	
 	for(int i=0;i<(N-1);i++){
 		if(abs(A[i+1][i])>e)
@@ -993,7 +1121,7 @@ void AutoValores_Vetores(int N, float** Mat, float** Vetores, float* valores){
 	float** H = MatIdentidade(N);
 	float** Q = MatIdentidade(N);
 	float** T = S_householder(N,Mat,H);
-	float** D = Diag_QR(N,500,T,Q);;
+	float** D = Diag_QR(N,-1,T,Q);;
 	float** Vet = mult(N,N,N,H,Q);
 	copiaVal(N,N,Vet,Vetores);
 	for(int i=0;i<N;i++)
@@ -1002,6 +1130,8 @@ void AutoValores_Vetores(int N, float** Mat, float** Vetores, float* valores){
 }
 
 void SVD(int M, int N, float** Mat, float** U, float** S, float** V){
+
+ 
 	float** AT = Transposta(M,N,Mat);
 	float** AtA = mult(N,M,N,AT,Mat);
 	float* autoVal = (float*)malloc(sizeof(float)*N);
@@ -1022,14 +1152,450 @@ void SVD(int M, int N, float** Mat, float** U, float** S, float** V){
 int main()
 {
 
+
+	//SEL (GAUSS, GAUSS-Jordan, LU, Cholensky, JACOBI, GAUSS-SEIDEL) 
+
+	int K = 99; 
+
+	while(K!=0){
+		printf("\n Algebra Linear, digite: \nDigite 1 - Resolucao de Sistemas Lineares  \nDigite 2 - Decomposicoes\nDigite 3 - Autovalores e Autovetores \nDigite 0 - Sair\n");
+		scanf("%d", &K);
+		int N = 0;
+		int M = 0;
+		float **A;
+		if(K==1){
+			printf("\n Para o Sistema A x = b");
+			printf("\n Digite o numero de Linhas/Colunas de A:");
+			scanf("%d", &N);
+			
+			A = (float **)malloc(sizeof(float)*N);
+			for (int i = 0; i < N; i++){
+				A[i] = (float *)malloc(sizeof(float)*(N));
+			}
+			preenche(N,N,A);
+			float *b = (float*)malloc(sizeof(float)*N);
+			preencheVet(N,b);
+			float *x;
+			K = 0;
+			while(K!=9){
+			printf("\nDigite : \n1-Gauss\n2-Gauss-Jordan\n3-LU\n4-Cholenky\n5-Jacobi\n6-Gauss_Seidel\n7-SOR\n8-Voltar\n");
+			scanf("%d", &K);
+
+			float e=0; 
+		    int kMax =0;
+			float w =0;
+			switch (K)
+			{
+			   case 1:
+				 printf("\nEliminacao de Gauss : ");
+				 printf("\n Matriz A: ");
+				 imp(N,N,A);
+				 printf("\n Vetor b: \n");
+				 impVet(N,b);
+
+				 x = Gauss(N,A,b);
+				 printf("\nVetor Solucao:\n");
+				 impVet(N,x);
+
+			   break;
+					
+			   case 2:
+				 printf("\nGauss-Jordan: ");
+				 x = GaussJordan(N,A,b);
+				 printf("\n Matriz A: ");
+				 imp(N,N,A);
+				 printf("\n Vetor b: \n");
+				 impVet(N,b);
+				 printf("\nVetor Solucao:\n");
+				 impVet(N,x);
+				break;
+			   case 3: 
+				    printf("\nLU : ");
+				 printf("\n Matriz A: ");
+				 imp(N,N,A);
+				 printf("\n Vetor b: \n");
+				 impVet(N,b);
+				 x = SELDecLU(N,A,b);
+				 printf("\nVetor Solucao:\n");
+				 impVet(N,x);
+				 break;
+
+				 case 4: 
+				    printf("\nCholensky : ");
+				 printf("\n Matriz A: ");
+				 imp(N,N,A);
+				 printf("\n Vetor b: \n");
+				 impVet(N,b);
+				 x = SELCholensky(N,A,b);
+				 printf("\nVetor Solucao:\n");
+				 impVet(N,x);
+				 break;
+
+			   case 5: 
+				 e=0;kMax=0;	
+				 printf("\n Digite: ");
+				 printf("\n Tolerancia: ");
+				 scanf("%f", &e);
+				 printf("\n Max Interacoes: ");
+				 scanf("%d", &kMax);
+
+				 printf("\n Jacobi: ");
+				 printf("\n Matriz A: ");
+				 imp(N,N,A);
+				 printf("\n Vetor b: \n");
+				 impVet(N,b);
+				 x = Jacobi(N,A,b,e,kMax);
+				 printf("\nVetor Solucao:\n");
+				 impVet(N,x);
+
+			   break;
+
+			   case 6: 
+				 e=0;kMax=0;	
+				 printf("\n Digite: ");
+				 printf("\n Tolerancia: ");
+				 scanf("%f", &e);
+				 printf("\n Max Interacoes: ");
+				 scanf("%d", &kMax);
+
+				 printf("\n Gauss_seidel: ");
+				 printf("\n Matriz A: ");
+				 imp(N,N,A);
+				 printf("\n Vetor b: \n");
+				 impVet(N,b);
+				 x = Gauss_Seidel(N,A,b,e,kMax);
+				 printf("\nVetor Solucao:\n");
+				 impVet(N,x);
+
+			   break;
+
+			   case 7: 
+				 e=0;kMax=0;	
+				 printf("\n Digite: ");
+				 printf("\n Tolerancia: ");
+				 scanf("%f", &e);
+				 printf("\n Max Interacoes: ");
+				 scanf("%d", &kMax);
+				 printf("\n W: ");
+				 scanf("%f", &w);
+
+				 printf("\n SOR: ");
+				 printf("\n Matriz A: ");
+				 imp(N,N,A);
+				 printf("\n Vetor b: \n");
+				 impVet(N,b);
+				 x = SOR(N,A,b,e,kMax,w);
+				 printf("\nVetor Solucao:\n");
+				 impVet(N,x);
+
+			   break;
+
+			}
+			}
+			free(A);
+			free(b);
+			free(x);
+		}
+
+		if(K == 2){
+			printf("\n Digite o numero de Linhas da A:");
+			scanf("%d", &M);
+			printf("\n Digite o numero de Colunas da A:");
+			scanf("%d", &N);
+			
+
+			A = (float **)malloc(sizeof(float)*M);
+			for (int i = 0; i < M; i++){
+				A[i] = (float *)malloc(sizeof(float)*(N));
+			}
+		    preenche(M,N,A);
+		  	
+			int Dec = 0;
+			float** L, **U, **S, **St, **Q, **R,**Mat, **Temp,**V;
+			while(Dec!=7){
+			printf("\nDigite : \n1-LU\n2-Cholensky\n3-QR_Gram Schmidt\n4-QR_HouseHolder\n5-QR_Givens\n6-SVD\n 7- Voltar\n");
+			scanf("%d", &Dec);
+
+			switch (Dec)
+			{
+			   case 1:
+				   if(M==N){
+					   printf("\n Matriz A: ");
+					   imp(M,N,A);
+					   L = MatIdentidade(N); 
+					   U = DecLU(N,A);
+						for(int i=1;i<N;i++)
+							for(int j=0;j<i;j++){
+								L[i][j]=U[i][j];
+								U[i][j]=0;
+							}
+
+						printf("\nL:");
+						imp(M,N,L);
+						printf("\nU:");
+						imp(M,N,U);
+
+						Temp = mult(M,N,M,L,U);
+						printf("\nTeste L*U:");
+						imp(M,N,Temp);
+						free(Temp);
+						free(L);
+						free(U);
+				   }else{
+					   printf("\n M!=N ");
+				   }
+			   break;
+			   case 2: 
+				   if(M==N){
+					   printf("\n Matriz A: ");
+					   imp(M,N,A);
+					   S = Cholesky(N,A);
+					   St = Transposta(N,N,S);
+
+					   printf("\nS:");
+					   imp(N,N,S);
+					   printf("\nSt:");
+					   imp(N,N,St);
+
+					    Temp = mult(M,N,M,S,St);
+						printf("\nTeste S*St:");
+						imp(M,N,Temp);
+						free(Temp);
+
+					   free(S);
+					   free(St);
+				   }else
+					   printf("\n M!=N ");
+				break;
+
+				case 3: 
+                   Mat = copia(M,N,A);
+				   printf("\n Matriz A: ");
+				   imp(M,N,Mat);
+				   Q = Gram_Schmidt(M,N,Mat); 
+				   R = mult(N,M,N,Q,Mat);
+				   Q = Transposta(N,M,Q);
+				   printf("\n Matriz Q: ");
+				   imp(M,N,Q);
+				   printf("\n Matriz R: ");
+				   imp(N,N,R);
+				   Temp = mult(M,N,M,Q,R);
+				    printf("\nTeste Q*R:");
+					imp(M,N,Temp);
+					free(Temp);
+				   free(Q);
+				   free(R);
+
+				break;
+				case 4: 
+				   printf("\n Matriz A: ");
+				   imp(M,N,A);
+				   R = MatIdentidade(M);
+				   Q = QR_HouseHolder(M,N,A,R);
+				   printf("\n Matriz Q: ");
+				   imp(M,N,Q);
+				   printf("\n Matriz R: ");
+				   imp(N,N,R);
+				   Temp = mult(M,N,N,Q,R);
+
+				   printf("\nTeste Q*R:");
+				   imp(M,N,Temp);
+				   free(Temp);
+				   free(Q);
+				   free(R);
+
+				break;
+				case 5: 
+				   printf("\n Matriz A: ");
+				   imp(M,N,A);
+				   R=MatIdentidade(M);
+				   Q = QR_givens(M,N,A,R);
+				   printf("\n Matriz Q: ");
+				   imp(M,N,Q);
+				   printf("\n Matriz R: ");
+				   imp(N,N,R);
+				   Temp = mult(M,N,N,Q,R);
+				    printf("\nTeste Q*R:");
+					imp(M,N,Temp);
+					free(Temp);
+				    free(Q);
+				    free(R);
+				break;
+
+				case 6:
+
+					U = MatIdentidade(M);
+					S = MatIdentidade(N);
+					V = MatIdentidade(N);
+
+					SVD(M,N,A,U,S,V);
+
+					printf("\n Matriz Original");
+					imp(M,N,A);
+					printf("\nU:");
+					imp(M,N,U);
+					printf("\nS:");
+					imp(N,N,S);
+					printf("\nVt:");
+					imp(N,N,V);
+
+					printf("\n Teste U*S*Vt :");
+					Temp = mult(M,N,N,U,S);
+					Temp = mult(M,N,N,Temp,V);
+					imp(M,N,Temp);
+
+					free(U);
+					free(S);
+					free(V);
+
+			}
+			
+			}free(A);
+
+		}
+
+		if(K==3){
+			printf("\n Digite o numero de Linhas/Colunas de A:");
+			scanf("%d", &N);
+			
+			A = (float **)malloc(sizeof(float)*N);
+			for (int i = 0; i < N; i++){
+				A[i] = (float *)malloc(sizeof(float)*(N));
+			}
+			preenche(N,N,A);
+			float** Vetores, **T, **D, *Valores;
+			int x = 0;
+			float* v = (float*)malloc(sizeof(float)*N);
+			float l=0;
+			float error=0;
+			int Max =0;
+			float Desl =0;
+			while(x!=7){
+				printf("\nDigite : \n1-Potencia Regular \n2-Potencia Inversa \n3-Potencia com Deslocamento \n4-Tridiagonalizacao\n5-Diagonalizacao QR \n6-Processos 4 e 5 para Todos os Autovetores e autovalores \n 7- Voltar\n");
+				scanf("%d", &x);
+				switch (x)
+				{
+					case 1:
+						printf("\nDigite a Tolerancia\n");
+						scanf("%f", &error);
+						printf("\nDigite o numero maximo de iteracoes\n");
+						scanf("%d", &Max);
+						for(int i=0;i<N;i++)
+							v[i]=1;
+
+						Maior_Auto_Valor_Vetor(Max,M, A, error, v,l);
+						printf("\nMatriz A\n");
+						imp(N,N,A);
+						printf("\nAuto Vetor\n");
+						impVet(N,v);
+						printf("\nAutoValor %f\n",l);
+					break;
+					case 2:
+						printf("\nDigite a Tolerancia\n");
+						scanf("%f", &error);
+						printf("\nDigite o numero maximo de interacoes\n");
+						scanf("%d", &Max);
+						for(int i=0;i<N;i++)
+							v[i]=1;
+
+						Menor_Auto_Valor_Vetor(Max,M, A, error, v,l);
+						printf("\nMatriz A\n");
+						imp(N,N,A);
+						printf("\nAuto Vetor\n");
+						impVet(N,v);
+						printf("\nAutoValor %f\n",l);
+					break;
+					case 3:
+						printf("\nDigite a Tolerancia\n");
+						scanf("%f", &error);
+						printf("\nDigite o numero maximo de iteracoes\n");
+						scanf("%d", &Max);
+						printf("\nDigite o Deslocamento\n");
+						scanf("%f", &Desl);
+						for(int i=0;i<N;i++)
+							v[i]=1;
+
+						Desloc_Auto_Valor_Vetor(Max,M, A, error, v,l, Desl);
+						printf("\nMatriz A\n");
+						imp(N,N,A);
+						printf("\nAuto Vetor\n");
+						impVet(N,v);
+						printf("\nAutoValor %f\n",l);
+
+					break;
+					case 4:
+						Vetores = MatIdentidade(N);
+						T = S_householder(N,A,Vetores);
+						printf("\n Matriz Original \n");
+						imp(N,N,A);
+						printf("\nT");
+						imp(N,N,T);
+						printf("\nAutovetores de T");
+						imp(N,N,Vetores);
+						free(Vetores);
+						free(T);
+
+					break;
+					case 5:
+						printf("\nDigite o numero maximo de iteracoes\n");
+						scanf("%d", &Max);
+						Vetores = MatIdentidade(N);
+						D = Diag_QR(N,Max,A,Vetores);
+						printf("\n Matriz Original \n");
+						imp(N,N,A);
+						printf("\nD");
+						imp(N,N,D);
+						printf("\nAutovetores de D");
+						imp(N,N,Vetores);
+						free(Vetores);
+						free(D);
+
+					break;
+					case 6:
+
+					Vetores = MatIdentidade(N);
+					Valores = (float*)malloc(sizeof(float)*N);
+					AutoValores_Vetores(N,A,Vetores,Valores);
+
+					printf("\n Matriz Original \n");
+					imp(N,N,A);
+					printf("\nAutovetores");
+					imp(N,N,Vetores);
+					printf("\nAutovalores: \n");
+					impVet(N,Valores);
+					free(Vetores);
+					free(Valores);
+
+					break;
+				}
+
+			}
+			
+		}
+
+	}
+
+	
+
+
+
+	/*
 	//float B[4][4]= {{18.324146,0.001371,0.000357,0.000001},{0.001370,8.959310,-0.831104,-0.000003},{0.000358,-0.831104,-7.037904,-0.000019},{0.000000,-0.000003,-0.000019,-2.245561}};
 	//float A[4][4] = {{1,2,6,8},{2,5,7,-3},{6,7,9,4},{8,-3,4,3}};
+	float A[6][6] = {{20,10,0,0,0,0},{10,20,10,0,0,0},{0,10,20,10,0,0},{0,0,10,20,10,0},{0,0,0,10,20,10},{0,0,0,0,10,20}};
+	/*20 10  0  0 0   0
+    10 20 10  0 0   0
+     0 10 20 10 0   0
+     0 0  10 20 10  0
+     0 0   0 10 20 10
+     0 0   0  0 10 20*/
+	
+	//float A[3][5] = {{4,2,2,1,0},{3,1,2,2,1},{2,3,2,3,2}};
 
-	float A[4][3] = {{1,2,1},{1,1,1},{1,1,1},{1,1,1}};
+	/*
 
-
-    int M = 4;
-	int N = 3;
+    int M = 6;
+	int N = 6;
 
     float **matA;
 
@@ -1038,11 +1604,58 @@ int main()
         matA[i] = (float *)malloc(sizeof(float)*(N));
 		matA[i] = A[i];
 	}
+	float* b = (float*)malloc(sizeof(float)*N);
+	preencheVet(N,b);
+
+	float *x = SOR(N, matA, b, 0.00001, 15000,0.5);
+	impVet(N,x);
+
+	imp(M,N,matA);
+
+	float** Result = mult(M,N,1,matA,VetorColuna(N,x));
+	imp(N,1,Result);
+
+	/*
+
+	float**R = (float **)malloc(sizeof(float)*M);
+    for (int i = 0; i < M; i++){
+        R[i] = (float *)malloc(sizeof(float)*(N));
+	}
+	float** Q = QR_HouseHolder(M, N,matA, R); //QR_givens(M,N,matA,R);//
+
+	imp(M,N,matA);
+
+	imp(M,N,Q);
+	imp(M,N,R);
+	float** Mat = mult(M,N,M, Q, R);
+	imp(M,N,Mat);
+
 	//preenche(M,N,matA);
+	/*
+	if(N>M){
+		matA = Transposta(M,N,matA);
+		float x = M;
+		M=N;
+		N=x;
+	}*/
+
+	//imp(4,4,matA);
+	
+	
+	/*
+	float* b = (float*)malloc(sizeof(float)*M);
+	preencheVet(4,b);
+	//impVet(4,b);
+	float *x = Gauss(4, matA,b);
+	//impVet(4,x);
+
+	/*
 	float** U = MatIdentidade(M);
 	float** S = MatIdentidade(N);
 	float** V = MatIdentidade(N);
+
 	SVD(M,N,matA,U,S,V);
+
 	printf("\n Matriz Original \n");
 	imp(M,N,matA);
 	printf("\nU:\n");
@@ -1052,7 +1665,7 @@ int main()
 	printf("\nV:\n");
 	imp(N,N,V);
 	
-	printf("\nU*S*V:\n");
+	printf("\nU*S*Vt:\n");
 	float** Temp = mult(M,N,N,U,S);
 	Temp = mult(M,N,N,Temp,V);
 	imp(M,N,Temp);
