@@ -808,8 +808,8 @@ float* SOR(int N, float** A, float *b, float e, int kMax, float W){
 			for(int j=i+1;j<N;j++)
 				soma2 += (A[i][j]*x_novo[j]);
 
-			float GS = (b[i]-soma1-soma2)/A[i][i];
-			x_novo[i] = ((1-W)*x[i]) + (W*GS);
+			float GS = (b[i]-soma1-soma2);
+			x_novo[i] = ((1-W)*x[i]) + ((W/A[i][i])*GS);
 		}
 
 		n1 = NormaVetor(N,x);
@@ -870,28 +870,29 @@ float** QR_HouseHolder(int M, int N, float** Mat, float **R){
 				v[i]=r[i][j];
 			}
 		norm = NormaVetor(N,v);
-		printf("V: \n");
-		impVet(N,v);
+		//printf("V: \n");
+		//impVet(N,v);
 		n = copiaVet(N,v);
+		
 		n[j] -= norm;
 		norm = NormaVetor(N,n);
 		
 		Escalar(N,n,1/norm);
 		
-		printf("N: \n");
-		impVet(N,n);
+		//printf("N: \n");
+		//impVet(N,n);
 		H = householder(N,VetorColuna(N,n));
 
-		imp(M,N,H);
+		//imp(M,N,H);
 
-		r = mult(M,M,N,H,r);
-		imp(M,N,r);
+		r = mult(N,N,N,H,r);
+		//imp(M,N,r);
 
-		Q = mult(M,M,M,Q,H);
+		Q = mult(M,N,N,Q,H);
 		
 	}
-	Q = Transposta(M,M,Q);
-	copiaVal(M,N,r,R);
+	//Q = Transposta(M,M,Q);
+	copiaVal(N,N,r,R);
 	return Q;
 }
 
@@ -1334,11 +1335,23 @@ float* Conj_Gradiente(int N, float **A, float*b, float*x0, float e){
 
 int main()
 {
-int M =6;
-int N =6;
-//float matA[3][3] = {{12.0,-51.0,4}, {6.0,167.0,-68.0}, {-4.0,24.0,-41.0}};
- float matA[6][6] = {{20,10,0,0,0,0},{10,20,10,0,0,0},{0,10,20,10,0,0},{0,0,10,20,10,0},{0,0,0,10,20,10},{0,0,0,0,10,20}};
- float B[6] = {-10,10,20,20,10,-10};	
+int M =4;
+int N =4;
+
+// float matA[6][6] = {{20,10,0,0,0,0},{10,20,10,0,0,0},{0,10,20,10,0,0},{0,0,10,20,10,0},{0,0,0,10,20,10},{0,0,0,0,10,20}};
+ //float B[6] = {-10,10,20,20,10,-10};	
+
+ float matA[4][4] = {{3,2,1,-1},{0,-3,-5,7},{0,1,0,3},{0,2,4,0}};  // Não é positiva definida
+float B[4] = {5,7,6,15};
+
+ 
+ //float matA[3][3] = {{12.0,-51.0,4}, {6.0,167.0,-68.0}, {-4.0,24.0,-41.0}}; // Não é Simetrica
+//float matA[4][4] = {{7, 3, -1, 2},{3, 8, 1, -4},{-1, 1, 4, -1},{2, -4, -1, 6}};
+
+//float matA[5][3] = {{4,3,2},{3,4,3},{2,3,4},{1,2,3},{0,1,2}};
+
+
+
 
  float *b = (float*)malloc(sizeof(float)*M);
  float *x = (float*)malloc(sizeof(float)*M);
